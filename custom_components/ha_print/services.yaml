@@ -1,0 +1,37 @@
+shopping_list:
+  name: Print shopping list
+  description: >
+    Fetch the current shopping list from HA-storage, group by Finnish grocery
+    aisle, and print it on the configured thermal printer.
+  fields:
+    done_filter:
+      name: Done items
+      description: How to handle already-completed items.
+      required: false
+      default: strike
+      example: strike
+      selector:
+        select:
+          options:
+            - value: strike
+              label: Print with strikethrough
+            - value: skip
+              label: Omit done items
+            - value: include
+              label: Print as normal
+
+recipe:
+  name: Print recipe
+  description: >
+    Fetch a recipe from HA-recipes (by ID) and print it on the configured
+    thermal printer, including the hero image if present.
+  fields:
+    recipe_id:
+      name: Recipe ID
+      description: The numeric ID of the recipe to print.
+      required: true
+      example: 12
+      selector:
+        number:
+          min: 1
+          mode: box

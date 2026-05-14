@@ -1,0 +1,23 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# HA-print API – FastAPI service on 127.0.0.1:8100 (and 0.0.0.0:8100 for siblings)
+# ==============================================================================
+
+bashio::log.info "Starting HA-print API..."
+
+if bashio::config.true 'debug'; then
+    export DEBUG=1
+    bashio::log.info "Debug mode enabled"
+else
+    export DEBUG=0
+fi
+
+export PYTHONUNBUFFERED=1
+
+DATA_DIR="/data"
+export DATA_DIR
+mkdir -p "${DATA_DIR}"
+
+cd /
+exec python3 -m app.main

@@ -1,0 +1,49 @@
+{
+  "name": "Print",
+  "version": "0.1.0",
+  "slug": "ha_print",
+  "description": "Thermal receipt printing (80mm ESC/POS) for HA-stock and HA-recipes",
+  "url": "https://github.com/Glitchtit/HA-print",
+  "arch": [
+    "aarch64",
+    "amd64",
+    "armhf",
+    "armv7",
+    "i386"
+  ],
+  "startup": "application",
+  "boot": "auto",
+  "admin": false,
+  "panel_admin": false,
+  "hassio_api": true,
+  "homeassistant_api": false,
+  "ingress": true,
+  "ingress_port": 8099,
+  "init": false,
+  "ports": {
+    "8100/tcp": null
+  },
+  "ports_description": {
+    "8100/tcp": "Internal FastAPI port for sibling add-on access (HA-stock, HA-recipes)"
+  },
+  "options": {
+    "printer_host": "",
+    "printer_port": 9100,
+    "printer_profile": "default",
+    "codepage": "CP858",
+    "image_impl": "bitImageRaster",
+    "enable_cut": true,
+    "column_width": 48,
+    "debug": false
+  },
+  "schema": {
+    "printer_host": "str",
+    "printer_port": "int(1,65535)",
+    "printer_profile": "str?",
+    "codepage": "str?",
+    "image_impl": "list(bitImageRaster|bitImageColumn)?",
+    "enable_cut": "bool?",
+    "column_width": "int(32,80)?",
+    "debug": "bool?"
+  }
+}
