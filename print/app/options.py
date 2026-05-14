@@ -36,6 +36,6 @@ class Options:
             codepage=str(data.get("codepage", "CP858") or "CP858"),
             image_impl=str(data.get("image_impl", "bitImageRaster") or "bitImageRaster"),
             enable_cut=bool(data.get("enable_cut", True)),
-            column_width=int(data.get("column_width", 48) or 48),
+            column_width=int(data.get("column_width", 32) or 32),
             debug=bool(data.get("debug", False)),
         )
