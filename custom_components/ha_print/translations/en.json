@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Print add-on",
+        "description": "Confirm the URL of the HA-print add-on. The HA-storage and HA-recipes add-ons are auto-discovered.",
+        "data": {
+          "addon_url": "HA-print add-on URL"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach HA-print add-on at that URL."
+    },
+    "abort": {
+      "already_configured": "HA-print is already configured."
+    }
+  },
+  "services": {
+    "shopping_list": {
+      "name": "Print shopping list",
+      "description": "Fetch the current shopping list and print it.",
+      "fields": {
+        "done_filter": {
+          "name": "Done items",
+          "description": "How to handle already-completed items."
+        }
+      }
+    },
+    "recipe": {
+      "name": "Print recipe",
+      "description": "Fetch a recipe by ID and print it.",
+      "fields": {
+        "recipe_id": {
+          "name": "Recipe ID",
+          "description": "The numeric ID of the recipe to print."
+        }
+      }
+    }
+  }
+}

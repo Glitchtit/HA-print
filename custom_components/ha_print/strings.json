@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Print add-on",
+        "description": "Confirm the URL of the HA-print add-on. The HA-storage and HA-recipes add-ons are auto-discovered.",
+        "data": {
+          "addon_url": "HA-print add-on URL"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach HA-print add-on at that URL."
+    },
+    "abort": {
+      "already_configured": "HA-print is already configured."
+    }
+  }
+}
