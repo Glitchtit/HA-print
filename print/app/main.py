@@ -19,6 +19,7 @@ from .escpos_driver import PrinterError, probe_printer, thermal_printer
 from .options import Options
 from .templating import recipe as recipe_tpl
 from .templating import shopping_list as list_tpl
+from .templating.style import TextStyle
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get("DEBUG") == "1" else logging.INFO,
@@ -138,6 +139,10 @@ async def print_shopping_list(body: PrintShoppingListRequest):
                 aisles=aisles,
                 done_filter=body.done_filter,
                 column_width=OPTIONS.column_width,
+                title_style=TextStyle.parse(OPTIONS.title_style),
+                header_style=TextStyle.parse(OPTIONS.header_style),
+                item_style=TextStyle.parse(OPTIONS.item_style),
+                note_style=TextStyle.parse(OPTIONS.note_style),
             )
     except PrinterError as exc:
         logger.warning("Printer error on shopping-list: %s", exc)
@@ -168,6 +173,10 @@ async def print_recipe(body: PrintRecipeRequest):
                 image_bytes=image_bytes,
                 column_width=OPTIONS.column_width,
                 image_impl=OPTIONS.image_impl,
+                title_style=TextStyle.parse(OPTIONS.title_style),
+                header_style=TextStyle.parse(OPTIONS.header_style),
+                item_style=TextStyle.parse(OPTIONS.item_style),
+                note_style=TextStyle.parse(OPTIONS.note_style),
             )
     except PrinterError as exc:
         logger.warning("Printer error on recipe: %s", exc)

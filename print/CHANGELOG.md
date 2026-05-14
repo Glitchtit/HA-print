@@ -1,3 +1,17 @@
+## 0.1.3
+- Driven by the XP-80T selftest, which revealed the printer can do **48 chars/line at Font A** (we'd been assuming 32) and that it ships with **Chinese character mode enabled** (which is why å/ä/ö rendered as CJK glyphs):
+  - Default `column_width` raised to **48** (matches Font A at the printer's actual 576-dot width).
+  - Driver now sends **`FS .`** (cancel Kanji mode) at connect time so the selected codepage (CP858 by default) is actually honored. Should fix the garbled Finnish/Swedish chars.
+
+## 0.1.2
+- **Granular font sizes per section.** Four new add-on options let you tune each region independently:
+  - `title_style` (default `a1x2-bold` — Font A, double height, bold): the "Ostoslista" / recipe name banner.
+  - `header_style` (default `a-bold-underline` — Font A, bold, underlined): aisle labels and "Ainekset"/"Ohjeet".
+  - `item_style` (default `b` — Font B, smaller): list items, ingredients, instructions.
+  - `note_style` (default `b`): per-item notes and the recipe source URL.
+- Style spec syntax: `<font>[<WxH>|<scale>]-<modifier>...`. Examples: `a`, `b`, `a2` (Font A 2x both dims), `a1x2` (tall not wide), `a2x1` (wide not tall), `b-bold`, `a-bold-underline`, `a3-bold` (3x scale via `custom_size`).
+- `printer_profile` and `column_width` explainer in README.
+
 ## 0.1.1
 - Fix layout on XP-80T (and any printer running the python-escpos `default` profile at 384 dot width):
   - Default `column_width` lowered to **32** (matches Font A at default profile).

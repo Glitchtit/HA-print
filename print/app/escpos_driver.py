@@ -55,6 +55,16 @@ def thermal_printer(options: Options) -> Iterator[Network]:
         except Exception as exc:  # noqa: BLE001
             logger.warning("charcode(%s) failed: %s", options.codepage, exc)
 
+        # Cancel Kanji (Chinese) character mode. Many Xprinter clones ship with
+        # GB18030 dual-mode enabled, which makes high-bit Latin chars (å/ä/ö —
+        # 0x86/0x84/0x94 in CP858) parse as Chinese lead bytes. `FS .` switches
+        # the printer back to single-byte / alphabetic mode so the codepage
+        # we just selected is actually honored.
+        try:
+            printer._raw(b"\x1c.")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Cancel Kanji mode failed: %s", exc)
+
         yield printer
 
         if options.enable_cut:

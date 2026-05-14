@@ -19,6 +19,10 @@ class Options:
     enable_cut: bool
     column_width: int
     debug: bool
+    title_style: str
+    header_style: str
+    item_style: str
+    note_style: str
 
     @classmethod
     def load(cls, path: str = "/data/options.json") -> "Options":
@@ -36,6 +40,10 @@ class Options:
             codepage=str(data.get("codepage", "CP858") or "CP858"),
             image_impl=str(data.get("image_impl", "bitImageRaster") or "bitImageRaster"),
             enable_cut=bool(data.get("enable_cut", True)),
-            column_width=int(data.get("column_width", 32) or 32),
+            column_width=int(data.get("column_width", 48) or 48),
             debug=bool(data.get("debug", False)),
+            title_style=str(data.get("title_style", "a1x2-bold") or "a1x2-bold"),
+            header_style=str(data.get("header_style", "a-bold-underline") or "a-bold-underline"),
+            item_style=str(data.get("item_style", "b") or "b"),
+            note_style=str(data.get("note_style", "b") or "b"),
         )
