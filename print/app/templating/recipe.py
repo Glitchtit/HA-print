@@ -25,13 +25,15 @@ def render(
     *,
     recipe: dict[str, Any],
     image_bytes: bytes | None = None,
-    column_width: int = 32,
+    column_width: int = 48,
     image_impl: str = "bitImageRaster",
     image_width_px: int = 384,
     title_style: TextStyle | None = None,
     header_style: TextStyle | None = None,
     item_style: TextStyle | None = None,
     note_style: TextStyle | None = None,
+    header_text: str | None = None,
+    footer_text: str | None = None,
 ) -> dict[str, int]:
     """Render a recipe. Returns a small summary dict."""
     name = safe_text(recipe.get("name") or "Recipe")
@@ -43,6 +45,17 @@ def render(
     header_style = header_style or TextStyle.parse("a-bold-underline")
     item_style = item_style or TextStyle.parse("b")
     note_style = note_style or TextStyle.parse("b")
+
+    # ── Optional user header (e.g. household name) ─────────────────────────
+    if header_text:
+        printer.set(align="center")
+        note_style.apply(printer)
+        nw = note_style.width_chars(column_width)
+        for line in textwrap.wrap(safe_text(header_text), width=nw) or [""]:
+            printer.text(line + "\n")
+        TextStyle().apply(printer)
+        printer.set(align="left")
+        printer.text("\n")
 
     # ── Hero image (optional) ──────────────────────────────────────────────
     if image_bytes:
@@ -115,6 +128,17 @@ def render(
         note_width = note_style.width_chars(column_width)
         for line in textwrap.wrap(src, width=note_width) or [""]:
             printer.text(line + "\n")
+
+    # ── Optional user footer ───────────────────────────────────────────────
+    if footer_text:
+        printer.text("\n")
+        printer.set(align="center")
+        note_style.apply(printer)
+        nw = note_style.width_chars(column_width)
+        for line in textwrap.wrap(safe_text(footer_text), width=nw) or [""]:
+            printer.text(line + "\n")
+        TextStyle().apply(printer)
+        printer.set(align="left")
 
     TextStyle().apply(printer)  # reset for cut/feed
     return {

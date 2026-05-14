@@ -30,6 +30,12 @@ def configured_options(monkeypatch):
         header_style="a-bold-underline",
         item_style="b",
         note_style="b",
+        beep_after_print=False,
+        beep_count=2,
+        beep_duration_ms=200,
+        print_density=5,
+        header_text="",
+        footer_text="",
     )
     monkeypatch.setattr(main_mod, "OPTIONS", opts)
     yield opts
@@ -64,6 +70,12 @@ def test_health_endpoint(monkeypatch):
         header_style="a-bold-underline",
         item_style="b",
         note_style="b",
+        beep_after_print=False,
+        beep_count=2,
+        beep_duration_ms=200,
+        print_density=5,
+        header_text="",
+        footer_text="",
     )
     monkeypatch.setattr(main_mod, "OPTIONS", opts)
     # The probe will fail (host unroutable), but the endpoint should still 200.
@@ -151,3 +163,25 @@ def test_print_recipe_with_bad_image_b64_still_succeeds(configured_options, fake
     # Bad image should be logged and skipped, not 500
     assert r.status_code == 200, r.text
     assert r.json()["ok"] is True
+
+
+def test_header_text_option_threads_through_to_template(monkeypatch, fake_printer):
+    """When `header_text` is set in Options, it appears in the printed output."""
+    opts = Options(
+        printer_host="127.0.0.1", printer_port=9100, printer_profile="default",
+        codepage="CP858", image_impl="bitImageRaster", enable_cut=False,
+        column_width=48, debug=False,
+        title_style="a", header_style="a", item_style="a", note_style="a",
+        beep_after_print=False, beep_count=2, beep_duration_ms=200,
+        print_density=5, header_text="Hello household", footer_text="Bye",
+    )
+    monkeypatch.setattr(main_mod, "OPTIONS", opts)
+    with TestClient(main_mod.app) as client:
+        r = client.post(
+            "/api/print/shopping-list",
+            json={"aisles": [{"label": "A", "items": [{"name": "X"}]}]},
+        )
+    assert r.status_code == 200
+    out = fake_printer["dummy"].output.decode("cp858", errors="replace")
+    assert "Hello household" in out
+    assert "Bye" in out

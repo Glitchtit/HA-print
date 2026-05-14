@@ -65,6 +65,13 @@ def thermal_printer(options: Options) -> Iterator[Network]:
         except Exception as exc:  # noqa: BLE001
             logger.warning("Cancel Kanji mode failed: %s", exc)
 
+        # Print density: GS | n (0x1D 0x7C n) on Xprinter clones, 0-8.
+        if 0 <= options.print_density <= 8:
+            try:
+                printer._raw(bytes([0x1D, 0x7C, options.print_density]))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Set print_density(%d) failed: %s", options.print_density, exc)
+
         yield printer
 
         if options.enable_cut:
@@ -73,6 +80,14 @@ def thermal_printer(options: Options) -> Iterator[Network]:
                 printer.cut(mode="PART")
             except Exception as exc:  # noqa: BLE001
                 logger.warning("cut failed: %s", exc)
+
+        if options.beep_after_print and options.beep_count > 0:
+            try:
+                # python-escpos uses 50ms units; we expose milliseconds.
+                duration_units = max(1, min(9, options.beep_duration_ms // 50))
+                printer.buzzer(times=options.beep_count, duration=duration_units)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Beep failed: %s", exc)
     except (OSError, socket.timeout) as exc:
         raise PrinterError(f"Connection lost: {exc}") from exc
     finally:

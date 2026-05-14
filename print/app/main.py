@@ -143,6 +143,8 @@ async def print_shopping_list(body: PrintShoppingListRequest):
                 header_style=TextStyle.parse(OPTIONS.header_style),
                 item_style=TextStyle.parse(OPTIONS.item_style),
                 note_style=TextStyle.parse(OPTIONS.note_style),
+                header_text=OPTIONS.header_text or None,
+                footer_text=OPTIONS.footer_text or None,
             )
     except PrinterError as exc:
         logger.warning("Printer error on shopping-list: %s", exc)
@@ -177,6 +179,8 @@ async def print_recipe(body: PrintRecipeRequest):
                 header_style=TextStyle.parse(OPTIONS.header_style),
                 item_style=TextStyle.parse(OPTIONS.item_style),
                 note_style=TextStyle.parse(OPTIONS.note_style),
+                header_text=OPTIONS.header_text or None,
+                footer_text=OPTIONS.footer_text or None,
             )
     except PrinterError as exc:
         logger.warning("Printer error on recipe: %s", exc)

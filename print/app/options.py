@@ -23,6 +23,12 @@ class Options:
     header_style: str
     item_style: str
     note_style: str
+    beep_after_print: bool
+    beep_count: int
+    beep_duration_ms: int
+    print_density: int
+    header_text: str
+    footer_text: str
 
     @classmethod
     def load(cls, path: str = "/data/options.json") -> "Options":
@@ -46,4 +52,14 @@ class Options:
             header_style=str(data.get("header_style", "a-bold-underline") or "a-bold-underline"),
             item_style=str(data.get("item_style", "b") or "b"),
             note_style=str(data.get("note_style", "b") or "b"),
+            beep_after_print=bool(data.get("beep_after_print", False)),
+            beep_count=_clamp(int(data.get("beep_count", 2) or 2), 1, 9),
+            beep_duration_ms=_clamp(int(data.get("beep_duration_ms", 200) or 200), 50, 1000),
+            print_density=_clamp(int(data.get("print_density", 5) or 5), 0, 8),
+            header_text=str(data.get("header_text", "") or ""),
+            footer_text=str(data.get("footer_text", "") or ""),
         )
+
+
+def _clamp(n: int, lo: int, hi: int) -> int:
+    return max(lo, min(hi, n))

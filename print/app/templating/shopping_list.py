@@ -18,11 +18,13 @@ def render(
     timestamp: str | None = None,
     aisles: list[dict] | None = None,
     done_filter: str = "strike",
-    column_width: int = 32,
+    column_width: int = 48,
     title_style: TextStyle | None = None,
     header_style: TextStyle | None = None,
     item_style: TextStyle | None = None,
     note_style: TextStyle | None = None,
+    header_text: str | None = None,
+    footer_text: str | None = None,
 ) -> dict[str, int]:
     """Render the receipt. Returns a small summary dict.
 
@@ -39,7 +41,12 @@ def render(
 
     items_printed = 0
 
-    # ── Header ──────────────────────────────────────────────────────────────
+    # ── Optional user header (e.g. household name) ─────────────────────────
+    if header_text:
+        _render_user_text(printer, header_text, note_style, column_width)
+        printer.text("\n")
+
+    # ── Title ──────────────────────────────────────────────────────────────
     printer.set(align="center")
     title_style.apply(printer)
     printer.text(safe_text(title) + "\n")
@@ -79,12 +86,28 @@ def render(
         printer.text("(tyhja lista)\n")
         printer.set(align="left")
 
+    # ── Optional user footer ───────────────────────────────────────────────
+    if footer_text:
+        printer.text("\n")
+        _render_user_text(printer, footer_text, note_style, column_width)
+
     # Reset state on exit so the cut/feed in the driver runs clean.
     TextStyle().apply(printer)
     return {
         "items_printed": items_printed,
         "aisles_printed": sum(1 for a in aisles if a.get("items")),
     }
+
+
+def _render_user_text(printer, text: str, style: TextStyle, column_width: int) -> None:
+    """Centered, single-style block (no header alignment changes after)."""
+    printer.set(align="center")
+    style.apply(printer)
+    width = style.width_chars(column_width)
+    for line in textwrap.wrap(safe_text(text), width=width) or [""]:
+        printer.text(line + "\n")
+    TextStyle().apply(printer)
+    printer.set(align="left")
 
 
 def _render_item(
