@@ -95,3 +95,39 @@ def test_renders_recipe_with_minimal_data():
     out = _render(recipe={"name": "Bare"})
     text = out.decode("cp858", errors="replace")
     assert "Bare" in text
+
+
+def test_skips_note_when_it_duplicates_product_name():
+    out = _render(
+        recipe={
+            "name": "X",
+            "ingredients": [
+                {"product_name": "maito", "note": "maito"},
+                {"product_name": "korppujauho", "note": "Korppujauho"},  # case-insensitive
+                {"product_name": "kerma", "note": "kerma 2 dl"},  # name is substring of note
+            ],
+            "instructions": [],
+        },
+    )
+    text = out.decode("cp858", errors="replace")
+    # Each product name appears exactly ONCE (after the leading "- ")
+    for word in ("maito", "korppujauho", "kerma"):
+        assert text.lower().count(word.lower()) == 1, (
+            f"{word!r} should appear once but appears "
+            f"{text.lower().count(word.lower())} times in:\n{text}"
+        )
+
+
+def test_keeps_note_when_it_adds_information():
+    out = _render(
+        recipe={
+            "name": "X",
+            "ingredients": [
+                {"product_name": "muna", "note": "huoneenlampoinen"},
+            ],
+            "instructions": [],
+        },
+    )
+    text = out.decode("cp858", errors="replace")
+    assert "muna" in text
+    assert "huoneenlampoinen" in text

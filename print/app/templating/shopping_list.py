@@ -4,6 +4,7 @@ The caller submits items already grouped into aisles. HA-print only renders.
 """
 from __future__ import annotations
 
+import textwrap
 from typing import Any
 
 from .common import divider, fmt_amount, now_stamp, qty_unit, safe_text
@@ -75,21 +76,21 @@ def _render_item(printer, item: dict[str, Any], *, done_filter: str, column_widt
     done = bool(item.get("done"))
 
     box = "[x]" if done else "[ ]"
-    qty_col = qty.ljust(7)[:7] if qty else "       "
-    line = f"{box} {qty_col} {name}"
-    # Trim to column width so we don't wrap mid-line on the printer
-    if len(line) > column_width:
-        line = line[: column_width - 1] + "…"
-    printer.text(line + "\n")
+    # Compact prefix: "[ ] 1 " or "[ ] " when no qty — no fixed padding column,
+    # so short qtys don't leave a chasm before the name.
+    prefix = f"{box} {qty} " if qty else f"{box} "
+    body_width = max(8, column_width - len(prefix))
+
+    lines = textwrap.wrap(name, width=body_width, break_long_words=True) or [""]
+    printer.text(prefix + lines[0] + "\n")
+    indent = " " * len(prefix)
+    for cont in lines[1:]:
+        printer.text(indent + cont + "\n")
 
     if done and done_filter == "strike":
-        # ESC/POS has no native strikethrough — overprint a row of "-" the same
-        # length as the line we just printed. This works because the printer
-        # advances by one line, but we use ESC d 0 / line feed reset trick by
-        # printing on the next line; visually it looks like an underline of
-        # equal width, which the eye reads as "done". Good enough for v1.
-        bar = "-" * min(len(line), column_width)
-        printer.text(bar + "\n")
+        # ESC/POS has no native strikethrough — overprint a row of "-" across
+        # the column to give a visible "crossed out" feel.
+        printer.text(("-" * column_width) + "\n")
 
     if note:
         # Font B (smaller) for the note
@@ -97,7 +98,9 @@ def _render_item(printer, item: dict[str, Any], *, done_filter: str, column_widt
             printer.set(font="b")
         except Exception:  # noqa: BLE001
             pass
-        printer.text("   " + note[: column_width - 3] + "\n")
+        note_lines = textwrap.wrap(note, width=column_width - 4) or [""]
+        for nl in note_lines:
+            printer.text("   " + nl + "\n")
         try:
             printer.set(font="a")
         except Exception:  # noqa: BLE001
