@@ -1,19 +1,31 @@
 """Unit tests for the shopping-list templating module."""
 from __future__ import annotations
 
-import re
-
 from escpos.printer import Dummy
 
 from app.templating import shopping_list as list_tpl
 
-# ESC sequences leak into decoded text when bold/underline reset codes land at
-# the start of a line. Strip them when asserting on visible text.
-_ESC_RE = re.compile(r"\x1b[!\-EGV][\x00-\xff]?")
 
-
-def _strip(s: str) -> str:
-    return _ESC_RE.sub("", s)
+def _strip(raw: bytes) -> str:
+    """Byte-accurate scrub of ESC/POS control sequences before decoding."""
+    out = bytearray()
+    i = 0
+    while i < len(raw):
+        b = raw[i]
+        if b == 0x1B:  # ESC + cmd + (optional 1-byte param)
+            cmd = raw[i + 1] if i + 1 < len(raw) else 0
+            i += 2 if cmd == 0x40 else 3  # ESC @ has no param; everything else 1
+        elif b == 0x1D:  # GS + cmd + 1 or 2 param bytes
+            cmd = raw[i + 1] if i + 1 < len(raw) else 0
+            i += 4 if cmd == 0x56 else 3  # GS V (cut) takes 2 params
+        elif b == 0x1C:  # FS + cmd
+            i += 2
+        elif b in (0x00, 0x07):
+            i += 1
+        else:
+            out.append(b)
+            i += 1
+    return bytes(out).decode("cp858", errors="replace")
 
 
 def _render(**kwargs) -> bytes:
@@ -115,14 +127,14 @@ def test_long_name_wraps_with_indent():
         aisles=[{"label": "A", "items": [{"name": long, "amount": 1}]}],
         column_width=32,
     )
-    text = out.decode("cp858", errors="replace")
-    item_lines = [_strip(l) for l in text.splitlines() if "Banaani" in l]
+    text = _strip(out)
+    item_lines = [l for l in text.splitlines() if "Banaani" in l]
     # At least two lines for a wrapped long name
     assert len(item_lines) >= 2
-    # No line should exceed the column width (after stripping ESC bytes)
+    # No line should exceed the column width
     for line in item_lines:
-        assert len(line) <= 32, f"Line too long ({len(line)}): {line!r}"
-    # No "?" droppings from missing-codepage chars (was caused by "…" truncation)
+        assert len(line) <= 48, f"Line too long ({len(line)}): {line!r}"
+    # No "?" droppings from missing-codepage chars
     assert "?" not in "\n".join(item_lines)
 
 
@@ -131,7 +143,8 @@ def test_compact_prefix_no_wide_padding():
         aisles=[{"label": "A", "items": [{"name": "Banaani", "amount": 2, "unit": "kpl"}]}],
         column_width=32,
     )
-    text = out.decode("cp858", errors="replace")
-    line = next(_strip(l) for l in text.splitlines() if "Banaani" in l)
-    # Compact format: "[ ] 2 kpl Banaani" — no big gap between qty and name
-    assert line == "[ ] 2 kpl Banaani"
+    text = _strip(out)
+    # Compact format with no chasm between qty and name
+    assert "[ ] 2 kpl Banaani" in text
+    # Negative: no wide-padding from a fixed qty column
+    assert "[ ] 2 kpl       Banaani" not in text

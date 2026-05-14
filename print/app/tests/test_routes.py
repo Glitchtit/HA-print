@@ -24,8 +24,12 @@ def configured_options(monkeypatch):
         codepage="CP858",
         image_impl="bitImageRaster",
         enable_cut=False,
-        column_width=48,
+        column_width=32,
         debug=False,
+        title_style="a1x2-bold",
+        header_style="a-bold-underline",
+        item_style="b",
+        note_style="b",
     )
     monkeypatch.setattr(main_mod, "OPTIONS", opts)
     yield opts
@@ -54,8 +58,12 @@ def test_health_endpoint(monkeypatch):
         codepage="CP858",
         image_impl="bitImageRaster",
         enable_cut=True,
-        column_width=48,
+        column_width=32,
         debug=False,
+        title_style="a1x2-bold",
+        header_style="a-bold-underline",
+        item_style="b",
+        note_style="b",
     )
     monkeypatch.setattr(main_mod, "OPTIONS", opts)
     # The probe will fail (host unroutable), but the endpoint should still 200.

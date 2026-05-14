@@ -1,7 +1,9 @@
 """Render a recipe onto an escpos printer-like object.
 
 Includes optional hero image rendering via Pillow (downscale → 1-bit dither).
-Body text uses Font B (smaller, ~33% denser) so a recipe fits on less paper.
+Text styles for title / header / item / note come from the caller — defaults
+target a dense layout where the body text is in Font B (small) and the title
+is bold double-height.
 """
 from __future__ import annotations
 
@@ -12,7 +14,8 @@ from typing import Any
 
 from PIL import Image
 
-from .common import divider, fmt_amount, safe_text, wrap
+from .common import divider, fmt_amount, safe_text
+from .style import TextStyle
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +25,24 @@ def render(
     *,
     recipe: dict[str, Any],
     image_bytes: bytes | None = None,
-    column_width: int = 48,
+    column_width: int = 32,
     image_impl: str = "bitImageRaster",
     image_width_px: int = 384,
+    title_style: TextStyle | None = None,
+    header_style: TextStyle | None = None,
+    item_style: TextStyle | None = None,
+    note_style: TextStyle | None = None,
 ) -> dict[str, int]:
     """Render a recipe. Returns a small summary dict."""
     name = safe_text(recipe.get("name") or "Recipe")
     servings = recipe.get("servings")
     ingredients = recipe.get("ingredients") or []
     instructions = recipe.get("instructions") or []
+
+    title_style = title_style or TextStyle.parse("a1x2-bold")
+    header_style = header_style or TextStyle.parse("a-bold-underline")
+    item_style = item_style or TextStyle.parse("b")
+    note_style = note_style or TextStyle.parse("b")
 
     # ── Hero image (optional) ──────────────────────────────────────────────
     if image_bytes:
@@ -43,44 +55,46 @@ def render(
         except Exception as exc:  # noqa: BLE001
             logger.warning("Failed to render hero image: %s", exc)
 
-    # Body uses Font B → ~33% more chars per physical line on the XP-80T
-    # default profile (~42 chars vs 32 in Font A). Track separately so the
-    # caller's `column_width` stays the Font A budget.
-    body_width = max(column_width, int(column_width * 4 / 3))
-
     # ── Title block ────────────────────────────────────────────────────────
-    # Bold + double-height keeps the title prominent without burning horizontal
-    # width on a double-wide that would only fit ~16 chars on a real XP-80T.
-    printer.set(align="center", bold=True, double_height=True, double_width=False, font="a")
+    printer.set(align="center")
+    title_style.apply(printer)
     printer.text(name + "\n")
-    printer.set(bold=False, double_height=False, double_width=False)
+    TextStyle().apply(printer)  # reset
+    printer.set(align="center")
     if servings is not None:
         printer.text(f"Annokset: {fmt_amount(servings)}\n")
     printer.set(align="left")
 
-    # Switch to Font B for the rest of the body.
-    try:
-        printer.set(font="b")
-    except Exception:  # noqa: BLE001
-        pass
+    # The body is laid out in `item_style` (Font B by default). Compute the
+    # effective body wrap width once.
+    body_width = item_style.width_chars(column_width)
 
+    item_style.apply(printer)
     printer.text(divider(body_width) + "\n")
+    TextStyle().apply(printer)
 
     # ── Ingredients ────────────────────────────────────────────────────────
-    printer.set(bold=True, underline=1, font="b")
+    header_style.apply(printer)
     printer.text("Ainekset\n")
-    printer.set(bold=False, underline=0, font="b")
+    TextStyle().apply(printer)
 
     for ing in ingredients:
-        _render_ingredient(printer, ing, column_width=body_width)
+        _render_ingredient(
+            printer, ing,
+            column_width=column_width,
+            item_style=item_style, note_style=note_style,
+        )
 
+    item_style.apply(printer)
     printer.text(divider(body_width) + "\n")
+    TextStyle().apply(printer)
 
     # ── Instructions ───────────────────────────────────────────────────────
-    printer.set(bold=True, underline=1, font="b")
+    header_style.apply(printer)
     printer.text("Ohjeet\n")
-    printer.set(bold=False, underline=0, font="b")
+    TextStyle().apply(printer)
 
+    item_style.apply(printer)
     for i, step in enumerate(instructions, start=1):
         body = safe_text(step)
         if not body:
@@ -94,18 +108,15 @@ def render(
             printer.text(indent + cont + "\n")
         printer.text("\n")
 
-    # Source line (already Font B) — wrap, don't truncate.
+    # Source line (kept in note style — typically smallest)
     src = safe_text(recipe.get("source_url") or "")
     if src:
-        for line in textwrap.wrap(src, width=body_width) or [""]:
+        note_style.apply(printer)
+        note_width = note_style.width_chars(column_width)
+        for line in textwrap.wrap(src, width=note_width) or [""]:
             printer.text(line + "\n")
 
-    # Restore Font A so the cut/feed in the driver leaves things clean.
-    try:
-        printer.set(font="a", bold=False, underline=0)
-    except Exception:  # noqa: BLE001
-        pass
-
+    TextStyle().apply(printer)  # reset for cut/feed
     return {
         "ingredients_printed": len(ingredients),
         "steps_printed": len(instructions),
@@ -113,7 +124,14 @@ def render(
     }
 
 
-def _render_ingredient(printer, ing: dict[str, Any], *, column_width: int) -> None:
+def _render_ingredient(
+    printer,
+    ing: dict[str, Any],
+    *,
+    column_width: int,
+    item_style: TextStyle,
+    note_style: TextStyle,
+) -> None:
     amount = ing.get("amount") if "amount" in ing else ing.get("amount_needed")
     unit = ing.get("unit") if "unit" in ing else ing.get("unit_abbrev")
     name = safe_text(ing.get("name") or ing.get("product_name") or "")
@@ -128,25 +146,28 @@ def _render_ingredient(printer, ing: dict[str, Any], *, column_width: int) -> No
     elif a:
         qty = a
 
-    # Compact prefix: "- 200 g " or "- " when no qty — no fixed padding column.
+    item_style.apply(printer)
+    body_width = item_style.width_chars(column_width)
+
     prefix = f"- {qty} " if qty else "- "
     suffix = f" ({parent})" if parent else ""
     body = name + suffix
-    body_width = max(8, column_width - len(prefix))
+    body_budget = max(8, body_width - len(prefix))
 
-    lines = textwrap.wrap(body, width=body_width, break_long_words=True) or [""]
+    lines = textwrap.wrap(body, width=body_budget, break_long_words=True) or [""]
     printer.text(prefix + lines[0] + "\n")
     indent = " " * len(prefix)
     for cont in lines[1:]:
         printer.text(indent + cont + "\n")
 
     # HA-recipes often stores the original ingredient text in `note` and the
-    # matched product in `product_name`; when they're identical (or the note is
-    # a substring of the name), printing the note duplicates the line. Skip.
+    # matched product in `product_name`; suppress the duplicate.
     if note and not _note_is_duplicate(note, name, parent):
-        note_lines = textwrap.wrap(note, width=column_width - 4) or [""]
-        for nl in note_lines:
+        note_style.apply(printer)
+        note_width = note_style.width_chars(column_width)
+        for nl in textwrap.wrap(note, width=note_width - 4) or [""]:
             printer.text("    " + nl + "\n")
+        item_style.apply(printer)
 
 
 def _note_is_duplicate(note: str, name: str, parent: str) -> bool:
@@ -157,7 +178,6 @@ def _note_is_duplicate(note: str, name: str, parent: str) -> bool:
     parent_l = (parent or "").strip().lower()
     if not name_l and not parent_l:
         return False
-    # Exact, or note is a substring of the name (or vice-versa).
     return n == name_l or n == parent_l or n in name_l or name_l in n
 
 
