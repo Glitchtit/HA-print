@@ -148,3 +148,16 @@ def test_compact_prefix_no_wide_padding():
     assert "[ ] 2 kpl Banaani" in text
     # Negative: no wide-padding from a fixed qty column
     assert "[ ] 2 kpl       Banaani" not in text
+
+
+def test_header_and_footer_text():
+    out = _render(
+        aisles=[{"label": "A", "items": [{"name": "Banaani", "amount": 1}]}],
+        header_text="Wredlund household",
+        footer_text="Tervetuloa kauppaan!",
+    )
+    text = _strip(out)
+    # Header appears before "Ostoslista" title
+    assert text.index("Wredlund household") < text.index("Ostoslista")
+    # Footer appears after the items
+    assert text.index("Banaani") < text.index("Tervetuloa kauppaan!")

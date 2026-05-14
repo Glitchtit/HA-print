@@ -1,3 +1,11 @@
+## 0.1.4
+- **Beep after print** — new options to make the printer chirp when a receipt finishes:
+  - `beep_after_print` (default `false`)
+  - `beep_count` (1–9, default `2`)
+  - `beep_duration_ms` (default `200`)
+- **Print density** — `print_density` (0–8, default `5`, matching the XP-80T factory setting). Sent via `GS | n` at connect time. Bump up for more contrast on faded paper, down to save thermal head life.
+- **Custom header / footer text** — `header_text` and `footer_text` options. Printed centered in `note_style` above the title and below the cut respectively. Empty by default. Useful for a household name or a "tervetuloa kauppaan" tagline.
+
 ## 0.1.3
 - Driven by the XP-80T selftest, which revealed the printer can do **48 chars/line at Font A** (we'd been assuming 32) and that it ships with **Chinese character mode enabled** (which is why å/ä/ö rendered as CJK glyphs):
   - Default `column_width` raised to **48** (matches Font A at the printer's actual 576-dot width).

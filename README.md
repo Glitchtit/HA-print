@@ -43,6 +43,12 @@ Add-on options:
 | `header_style`    | `a-bold-underline`   | Style of aisle / section headers ("Ainekset", "Ohjeet"). |
 | `item_style`      | `b`                  | Style of list items, ingredients, instruction steps. Font B is ~33% denser than A. |
 | `note_style`      | `b`                  | Style of per-item notes and the recipe source URL. |
+| `header_text`     | _(empty)_            | Optional text printed centered above the title (e.g. household name). |
+| `footer_text`     | _(empty)_            | Optional text printed below the body, before the cut. |
+| `print_density`   | `5`                  | Heat / contrast level, 0 (lightest) to 8 (darkest). XP-80T factory default is 5. |
+| `beep_after_print`| `false`              | If true, the printer chirps when each receipt finishes. |
+| `beep_count`      | `2`                  | Number of beeps (1–9). |
+| `beep_duration_ms`| `200`                | Length of each beep in milliseconds (50–1000, rounded to 50ms units). |
 
 ### Style spec format
 
