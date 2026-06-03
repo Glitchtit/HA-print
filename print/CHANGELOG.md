@@ -1,3 +1,6 @@
+## 0.1.6
+- **Delete key removes the selected block.** Click a block in the designer and press Delete (or Backspace) to remove it. Ignored while typing in a text field.
+
 ## 0.1.5
 - **Receipt designer (new ingress web UI).** The add-on now ships a real web UI (not just the health page). A free 2D drag-and-drop canvas at 80mm proportions (576px printable width) lets you place styled text/headings, uploaded PNG/JPG images, dividers/blank feed, and QR codes & barcodes, then print the composed layout. The browser rasterizes the canvas to a bitmap, so what you see is what prints.
 - **Alignment snapping.** Dragging a block snaps it to the canvas center lines and to nearby blocks' edges/centers, with on-canvas guidelines. The canvas redraws live while dragging. Hold Ctrl (or ⌘) to bypass snapping for free placement.

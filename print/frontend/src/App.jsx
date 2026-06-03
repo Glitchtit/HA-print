@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BlockPalette from './components/BlockPalette'
 import Canvas from './components/Canvas'
 import HealthBadge from './components/HealthBadge'
@@ -38,6 +38,22 @@ export default function App() {
     setElements((els || []).map((e) => ({ ...e, id: uid() })))
     setSelectedId(null)
   }
+
+  // Delete / Backspace removes the selected block — unless you're typing in a
+  // field (editing text content, a template name, etc.).
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return
+      const t = e.target
+      const tag = t?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return
+      if (tab !== 'designer' || !selectedId) return
+      e.preventDefault()
+      removeElement(selectedId)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [tab, selectedId])
 
   const handlePrint = async () => {
     setBusy(true)
@@ -142,6 +158,8 @@ export default function App() {
               Drag blocks to position, drag corners to resize.
               <br />
               Blocks snap to the center and to each other — hold Ctrl to place freely.
+              <br />
+              Select a block and press Delete to remove it.
               <br />
               The red dashed line is where the paper is cut.
             </p>
