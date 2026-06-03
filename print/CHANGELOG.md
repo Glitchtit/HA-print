@@ -1,3 +1,12 @@
+## 0.1.5
+- **Receipt designer (new ingress web UI).** The add-on now ships a real web UI (not just the health page). A free 2D drag-and-drop canvas at 80mm proportions (576px printable width) lets you place styled text/headings, uploaded PNG/JPG images, dividers/blank feed, and QR codes & barcodes, then print the composed layout. The browser rasterizes the canvas to a bitmap, so what you see is what prints.
+- **Alignment snapping.** Dragging a block snaps it to the canvas center lines and to nearby blocks' edges/centers, with on-canvas guidelines. The canvas redraws live while dragging. Hold Ctrl (or ⌘) to bypass snapping for free placement.
+- **Save & reuse designs.** Layouts can be saved as named templates (stored in the add-on's `/data`) and re-loaded/re-printed later.
+- **Direct SVG printing.** A separate tab accepts an uploaded `.svg`, rasterizes it server-side via librsvg to 576px-wide, and prints it. Design to 576px wide (72mm @ 203dpi), any height, pure black on white, convert text to paths.
+- **New print endpoints:** `POST /api/print/image` (base64 PNG) and `POST /api/print/svg` (base64 SVG), plus templates CRUD under `/api/templates`.
+- **Crisp QR/barcodes.** Line-art (designer composites, SVG) prints with a hard threshold by default instead of Floyd-Steinberg dithering, which keeps QR finder patterns and barcode bars scannable. Photographic content can still opt into dithering. The recipe hero image is unchanged (still dithered).
+- New options: `full_width_px` (default `576`) and `svg_default_dither` (default `false`).
+
 ## 0.1.4
 - **Beep after print** — new options to make the printer chirp when a receipt finishes:
   - `beep_after_print` (default `false`)

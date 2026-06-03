@@ -15,7 +15,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from . import svg as svg_mod
+from . import templates_store
 from .escpos_driver import PrinterError, probe_printer, thermal_printer
+from .imaging import prepare_image
 from .options import Options
 from .templating import recipe as recipe_tpl
 from .templating import shopping_list as list_tpl
@@ -107,7 +110,43 @@ class PrintRecipeRequest(BaseModel):
     image_b64: str | None = None
 
 
+class PrintImageRequest(BaseModel):
+    """A pre-composed bitmap to print as-is (the receipt designer's output)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    image_b64: str  # base64 PNG; may carry a `data:image/png;base64,` prefix
+    dither: bool = False  # composites are line-art-heavy → threshold by default
+    width_px: int = Field(default=576, ge=8, le=576)
+    threshold: int = Field(default=128, ge=1, le=254)
+
+
+class PrintSvgRequest(BaseModel):
+    """An uploaded SVG, rasterized server-side then printed."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    svg_b64: str
+    dither: bool | None = None  # None → use the add-on's svg_default_dither
+    width_px: int = Field(default=576, ge=8, le=576)
+
+
+class SaveTemplateRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str | None = None
+    name: str
+    elements: list[dict] = Field(default_factory=list)
+
+
 # ──── Routes ───────────────────────────────────────────────────────────────
+
+
+def _decode_b64(s: str) -> bytes:
+    """Decode base64, stripping an optional `data:...;base64,` data-URL prefix."""
+    if s.strip().startswith("data:") and "," in s:
+        s = s.split(",", 1)[1]
+    return base64.b64decode(s)
 
 
 @app.get("/api/health")
@@ -187,6 +226,112 @@ async def print_recipe(body: PrintRecipeRequest):
         raise HTTPException(503, str(exc))
 
     return {"ok": True, **summary}
+
+
+@app.post("/api/print/image")
+async def print_image(body: PrintImageRequest):
+    """Print a pre-composed bitmap (the receipt designer's canvas export)."""
+    if not OPTIONS.printer_host:
+        raise HTTPException(503, "printer_host is not configured in add-on options")
+
+    try:
+        raw = _decode_b64(body.image_b64)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(400, f"invalid image_b64: {exc}")
+
+    try:
+        img = prepare_image(
+            raw,
+            target_width=body.width_px,
+            mode="dither" if body.dither else "threshold",
+            threshold=body.threshold,
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(400, f"could not decode image: {exc}")
+
+    try:
+        with thermal_printer(OPTIONS) as p:
+            p.set(align="center")
+            p.image(img, impl=OPTIONS.image_impl, center=False)
+            p.set(align="left")
+            p.text("\n")
+    except PrinterError as exc:
+        logger.warning("Printer error on image: %s", exc)
+        raise HTTPException(503, str(exc))
+
+    return {"ok": True, "width_px": img.size[0], "height_px": img.size[1]}
+
+
+@app.post("/api/print/svg")
+async def print_svg(body: PrintSvgRequest):
+    """Rasterize an uploaded SVG server-side, then print it."""
+    if not OPTIONS.printer_host:
+        raise HTTPException(503, "printer_host is not configured in add-on options")
+
+    try:
+        svg_bytes = _decode_b64(body.svg_b64)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(400, f"invalid svg_b64: {exc}")
+
+    try:
+        png = svg_mod.render_svg_to_png(svg_bytes, width_px=body.width_px)
+    except svg_mod.SvgError as exc:
+        raise HTTPException(400, str(exc))
+
+    dither = OPTIONS.svg_default_dither if body.dither is None else body.dither
+    try:
+        img = prepare_image(png, target_width=body.width_px, mode="dither" if dither else "threshold")
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(400, f"could not rasterize SVG: {exc}")
+
+    try:
+        with thermal_printer(OPTIONS) as p:
+            p.set(align="center")
+            p.image(img, impl=OPTIONS.image_impl, center=False)
+            p.set(align="left")
+            p.text("\n")
+    except PrinterError as exc:
+        logger.warning("Printer error on svg: %s", exc)
+        raise HTTPException(503, str(exc))
+
+    return {"ok": True, "width_px": img.size[0], "height_px": img.size[1]}
+
+
+# ──── Designer templates (persisted in /data/templates) ──────────────────────
+
+
+@app.get("/api/templates")
+async def list_templates():
+    return {"templates": templates_store.list_templates()}
+
+
+@app.get("/api/templates/{template_id}")
+async def get_template(template_id: str):
+    try:
+        return templates_store.get_template(template_id)
+    except FileNotFoundError:
+        raise HTTPException(404, "template not found")
+    except ValueError:
+        raise HTTPException(400, "bad template id")
+
+
+@app.post("/api/templates")
+async def save_template(body: SaveTemplateRequest):
+    if not body.name.strip():
+        raise HTTPException(400, "name is required")
+    try:
+        return templates_store.save_template(body.name.strip(), body.elements, tid=body.id)
+    except ValueError:
+        raise HTTPException(400, "bad template id")
+
+
+@app.delete("/api/templates/{template_id}")
+async def delete_template(template_id: str):
+    try:
+        existed = templates_store.delete_template(template_id)
+    except ValueError:
+        raise HTTPException(400, "bad template id")
+    return {"ok": True, "deleted": existed}
 
 
 def main() -> None:

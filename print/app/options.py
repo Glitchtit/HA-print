@@ -29,6 +29,10 @@ class Options:
     print_density: int
     header_text: str
     footer_text: str
+    # Defaults at the end so existing positional/keyword constructions (and the
+    # test fixtures) keep working without naming these.
+    full_width_px: int = 576
+    svg_default_dither: bool = False
 
     @classmethod
     def load(cls, path: str = "/data/options.json") -> "Options":
@@ -58,6 +62,8 @@ class Options:
             print_density=_clamp(int(data.get("print_density", 5) or 5), 0, 8),
             header_text=str(data.get("header_text", "") or ""),
             footer_text=str(data.get("footer_text", "") or ""),
+            full_width_px=_clamp(int(data.get("full_width_px", 576) or 576), 8, 576),
+            svg_default_dither=bool(data.get("svg_default_dither", False)),
         )
 
 

@@ -7,13 +7,11 @@ is bold double-height.
 """
 from __future__ import annotations
 
-import io
 import logging
 import textwrap
 from typing import Any
 
-from PIL import Image
-
+from ..imaging import prepare_image
 from .common import divider, fmt_amount, safe_text
 from .style import TextStyle
 
@@ -60,7 +58,7 @@ def render(
     # ── Hero image (optional) ──────────────────────────────────────────────
     if image_bytes:
         try:
-            img = _prepare_image(image_bytes, target_width=image_width_px)
+            img = prepare_image(image_bytes, target_width=image_width_px, mode="dither")
             printer.set(align="center")
             printer.image(img, impl=image_impl, center=False)
             printer.set(align="left")
@@ -203,16 +201,3 @@ def _note_is_duplicate(note: str, name: str, parent: str) -> bool:
     if not name_l and not parent_l:
         return False
     return n == name_l or n == parent_l or n in name_l or name_l in n
-
-
-def _prepare_image(raw: bytes, target_width: int = 384) -> Image.Image:
-    """Decode → resize → grayscale → Floyd-Steinberg dither → 1-bit mode."""
-    img = Image.open(io.BytesIO(raw))
-    if img.mode != "RGB":
-        img = img.convert("RGB")
-    w, h = img.size
-    if w != target_width:
-        new_h = max(1, int(h * (target_width / w)))
-        img = img.resize((target_width, new_h), Image.LANCZOS)
-    img = img.convert("L").convert("1", dither=Image.FLOYDSTEINBERG)
-    return img

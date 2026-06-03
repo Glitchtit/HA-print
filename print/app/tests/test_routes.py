@@ -165,6 +165,79 @@ def test_print_recipe_with_bad_image_b64_still_succeeds(configured_options, fake
     assert r.json()["ok"] is True
 
 
+def _png_b64(w=576, h=40, prefix=False):
+    buf = io.BytesIO()
+    Image.new("RGB", (w, h), (0, 0, 0)).save(buf, format="PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{b64}" if prefix else b64
+
+
+def test_print_image_route(configured_options, fake_printer):
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/image", json={"image_b64": _png_b64(), "dither": False})
+    assert r.status_code == 200, r.text
+    assert r.json()["ok"] is True
+    assert fake_printer["dummy"].output  # ESC/POS raster bytes were emitted
+
+
+def test_print_image_strips_data_url_prefix(configured_options, fake_printer):
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/image", json={"image_b64": _png_b64(prefix=True)})
+    assert r.status_code == 200, r.text
+
+
+def test_print_image_bad_b64_returns_400(configured_options, fake_printer):
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/image", json={"image_b64": "!!!not-base64"})
+    assert r.status_code == 400
+
+
+def test_print_image_unconfigured_returns_503(monkeypatch):
+    monkeypatch.setattr(main_mod, "OPTIONS", Options.load(path="/nonexistent.json"))
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/image", json={"image_b64": "x"})
+    assert r.status_code == 503
+
+
+def test_print_svg_route(configured_options, fake_printer, monkeypatch):
+    # Stub the rasterizer so the test doesn't require the rsvg-convert binary.
+    monkeypatch.setattr(
+        main_mod.svg_mod, "render_svg_to_png", lambda *a, **k: base64.b64decode(_png_b64(h=20))
+    )
+    body = {"svg_b64": base64.b64encode(b"<svg/>").decode("ascii")}
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/svg", json=body)
+    assert r.status_code == 200, r.text
+    assert fake_printer["dummy"].output
+
+
+def test_print_svg_rejected_returns_400(configured_options, fake_printer, monkeypatch):
+    def _raise(*a, **k):
+        raise main_mod.svg_mod.SvgError("not allowed")
+
+    monkeypatch.setattr(main_mod.svg_mod, "render_svg_to_png", _raise)
+    body = {"svg_b64": base64.b64encode(b"<svg/>").decode("ascii")}
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/svg", json=body)
+    assert r.status_code == 400
+
+
+def test_templates_crud_route(configured_options, tmp_path, monkeypatch):
+    from app import templates_store as ts
+
+    monkeypatch.setattr(ts, "TEMPLATES_DIR", str(tmp_path / "templates"))
+    with TestClient(main_mod.app) as client:
+        created = client.post("/api/templates", json={"name": "X", "elements": [{"type": "text"}]})
+        assert created.status_code == 200, created.text
+        tid = created.json()["id"]
+
+        listing = client.get("/api/templates").json()["templates"]
+        assert any(t["id"] == tid for t in listing)
+        assert client.get(f"/api/templates/{tid}").json()["elements"] == [{"type": "text"}]
+        assert client.delete(f"/api/templates/{tid}").json()["deleted"] is True
+        assert client.get(f"/api/templates/{tid}").status_code == 404
+
+
 def test_header_text_option_threads_through_to_template(monkeypatch, fake_printer):
     """When `header_text` is set in Options, it appears in the printed output."""
     opts = Options(
