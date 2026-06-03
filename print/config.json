@@ -1,6 +1,6 @@
 {
   "name": "Print",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "slug": "ha_print",
   "description": "Thermal receipt printing (80mm ESC/POS) for HA-stock and HA-recipes",
   "url": "https://github.com/Glitchtit/HA-print",
@@ -19,6 +19,7 @@
   "homeassistant_api": false,
   "ingress": true,
   "ingress_port": 8099,
+  "panel_icon": "mdi:printer",
   "init": false,
   "ports": {
     "8100/tcp": null
