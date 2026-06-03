@@ -1,3 +1,6 @@
+## 0.1.12
+- **Drill guide crosshairs get a circle.** Each crosshair now has a small circle around it (touching the arm tips), making a clearer center-punch target.
+
 ## 0.1.11
 - **Vertical print calibration (`print_scale_v`).** Thermal printers' paper feed varies slightly from their nominal dpi, so a drill guide can print a hair short (e.g. 300mm measuring ~297mm). New option vertically scales the printed bitmap to correct it: set `print_scale_v` to intended ÷ measured (e.g. 300/297 ≈ 1.010). Default 1.0 (no change). Applies to the designer and SVG prints.
 

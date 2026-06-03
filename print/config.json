@@ -1,6 +1,6 @@
 {
   "name": "Print",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "slug": "ha_print",
   "description": "Thermal receipt printing (80mm ESC/POS) for HA-stock and HA-recipes",
   "url": "https://github.com/Glitchtit/HA-print",

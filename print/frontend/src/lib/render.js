@@ -116,6 +116,10 @@ async function drawElement(ctx, el) {
       ctx.moveTo(cx, cy - arm)
       ctx.lineTo(cx, cy + arm)
       ctx.stroke()
+      // Circle on the crosshair's outer bounds (touches the arm tips).
+      ctx.beginPath()
+      ctx.arc(cx, cy, arm, 0, Math.PI * 2)
+      ctx.stroke()
     }
   } else if (el.type === 'barcode' && el.data) {
     const tmp = document.createElement('canvas')
