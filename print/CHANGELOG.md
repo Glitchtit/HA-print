@@ -1,3 +1,6 @@
+## 0.1.14
+- **Smooth downward dragging.** Dragging a block down now expands the canvas continuously under the cursor instead of catching on the old canvas edge (which forced repeated release-and-redrag). Blocks are still kept within the paper width and above the top.
+
 ## 0.1.13
 - **Blank feed now extends the print.** A blank-feed block below your content now pushes the cut line (and the actual cut) down to include the trailing space, instead of being ignored because it has no ink. Other blocks still trim to their printed pixels.
 

@@ -76,6 +76,13 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, offse
     return computeSnap(el.w, el.h, x, y, elements.filter((o) => o.id !== el.id), CANVAS_WIDTH, height)
   }
 
+  // Keep blocks within the paper width and above the top; leave downward
+  // unbounded so the auto-growing canvas follows the cursor (no invisible edge).
+  const clampPos = (x, y, w) => ({
+    x: Math.max(0, Math.min(CANVAS_WIDTH - w, Math.round(x))),
+    y: Math.max(0, Math.round(y)),
+  })
+
   return (
     <div style={{ width: CANVAS_WIDTH * scale, height: height * scale }}>
       <div
@@ -121,7 +128,6 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, offse
           <Rnd
             key={el.id}
             scale={scale}
-            bounds="parent"
             enableResizing={el.type !== 'drillguide'}
             size={{ width: el.w, height: el.h }}
             position={drag && drag.id === el.id ? { x: drag.x, y: drag.y } : { x: el.x, y: el.y }}
@@ -131,12 +137,13 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, offse
             }}
             onDrag={(e, d) => {
               const s = snapFor(el, d.x, d.y, e)
-              setDrag({ id: el.id, x: s.x, y: s.y })
+              const p = clampPos(s.x, s.y, el.w)
+              setDrag({ id: el.id, ...p })
               setGuides(s.guides)
             }}
             onDragStop={(e, d) => {
               const s = snapFor(el, d.x, d.y, e)
-              onChange(el.id, { x: s.x, y: s.y })
+              onChange(el.id, clampPos(s.x, s.y, el.w))
               setDrag(null)
               setGuides([])
             }}
