@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Rnd } from 'react-rnd'
-import { CANVAS_WIDTH, contentBottom, renderToCanvas } from '../lib/render'
+import { CANVAS_WIDTH, measureInkBottom, renderToCanvas } from '../lib/render'
 import { computeSnap } from '../lib/snap'
 
 /**
@@ -16,6 +16,7 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
   const [scale, setScale] = useState(1)
   const [drag, setDrag] = useState(null) // { id, x, y } while dragging
   const [guides, setGuides] = useState([])
+  const [cutY, setCutY] = useState(0) // measured ink bottom (where the paper cuts)
 
   // Elements as currently displayed: the dragged block follows its live position.
   const displayElements = useMemo(() => {
@@ -35,7 +36,10 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
       }
       renderingRef.current = true
       try {
-        if (canvasRef.current) await renderToCanvas(canvasRef.current, els, h)
+        if (canvasRef.current) {
+          await renderToCanvas(canvasRef.current, els, h)
+          setCutY(measureInkBottom(canvasRef.current, 8))
+        }
       } finally {
         renderingRef.current = false
         if (pendingRef.current) {
@@ -57,8 +61,6 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
   }, [])
-
-  const cut = contentBottom(displayElements)
 
   // Hold Ctrl (or ⌘) while dragging to bypass snapping for free placement.
   const snapFor = (el, x, y, ev) => {
@@ -82,10 +84,10 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
           style={{ width: CANVAS_WIDTH, height }}
         />
 
-        {cut > 0 && cut < height && (
+        {cutY > 0 && cutY < height && (
           <div
             className="absolute left-0 right-0 border-t border-dashed border-red-500 pointer-events-none"
-            style={{ top: cut, zIndex: 40 }}
+            style={{ top: cutY, zIndex: 40 }}
             title="Paper cut — anything below this is trimmed off the print"
           />
         )}

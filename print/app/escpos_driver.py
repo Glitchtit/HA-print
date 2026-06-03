@@ -76,8 +76,14 @@ def thermal_printer(options: Options) -> Iterator[Network]:
 
         if options.enable_cut:
             try:
-                printer.ln(6)
-                printer.cut(mode="PART")
+                # Optional extra trailing margin before the cut (default 0).
+                if options.cut_feed_lines > 0:
+                    printer.print_and_feed(options.cut_feed_lines)
+                # feed=False emits GS V B 0 (function B): the printer feeds the
+                # paper exactly to its cutter and partial-cuts. The default
+                # feed=True path would `print_and_feed(6)` first — which, on top
+                # of any manual feed, left ~35mm of blank paper before the cut.
+                printer.cut(mode="PART", feed=False)
             except Exception as exc:  # noqa: BLE001
                 logger.warning("cut failed: %s", exc)
 

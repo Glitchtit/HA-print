@@ -254,7 +254,6 @@ async def print_image(body: PrintImageRequest):
             p.set(align="center")
             p.image(img, impl=OPTIONS.image_impl, center=False)
             p.set(align="left")
-            p.text("\n")
     except PrinterError as exc:
         logger.warning("Printer error on image: %s", exc)
         raise HTTPException(503, str(exc))

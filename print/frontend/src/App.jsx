@@ -161,7 +161,7 @@ export default function App() {
               <br />
               Select a block and press Delete to remove it.
               <br />
-              The red dashed line is where the paper is cut.
+              The red dashed line marks the end of the print.
             </p>
           </main>
         </div>

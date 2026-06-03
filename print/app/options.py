@@ -33,6 +33,7 @@ class Options:
     # test fixtures) keep working without naming these.
     full_width_px: int = 576
     svg_default_dither: bool = False
+    cut_feed_lines: int = 0
 
     @classmethod
     def load(cls, path: str = "/data/options.json") -> "Options":
@@ -64,6 +65,7 @@ class Options:
             footer_text=str(data.get("footer_text", "") or ""),
             full_width_px=_clamp(int(data.get("full_width_px", 576) or 576), 8, 576),
             svg_default_dither=bool(data.get("svg_default_dither", False)),
+            cut_feed_lines=_clamp(int(data.get("cut_feed_lines", 0) or 0), 0, 20),
         )
 
 

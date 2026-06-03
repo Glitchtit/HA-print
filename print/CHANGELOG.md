@@ -1,3 +1,7 @@
+## 0.1.7
+- **Much less blank paper before the cut.** The driver was feeding ~35mm before every cut: it called both a manual 6-line feed *and* python-escpos's `cut()`, which feeds 6 more lines by default. Now it uses the printer's "feed to cutter and partial-cut" command (`GS V B`), which advances the paper only as far as the cutter needs. New `cut_feed_lines` option (0–20, default 0) adds extra trailing margin if you want it.
+- **Accurate cut line in the designer.** The print and the on-canvas cut line are now trimmed to the last actually-printed pixel instead of to the blocks' bounding boxes, so an oversized box around a QR/barcode or a tall/empty block no longer leaves a gap before the cut.
+
 ## 0.1.6
 - **Delete key removes the selected block.** Click a block in the designer and press Delete (or Backspace) to remove it. Ignored while typing in a text field.
 

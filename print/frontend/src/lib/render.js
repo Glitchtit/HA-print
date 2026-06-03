@@ -104,10 +104,32 @@ async function drawElement(ctx, el) {
   }
 }
 
-/** Lowest pixel occupied by any element (where the paper should be cut). */
+/** Lowest box edge of any element — a generous upper bound for the render height. */
 export function contentBottom(elements, pad = 8) {
   if (!elements.length) return 0
   return Math.max(...elements.map((e) => e.y + e.h)) + pad
+}
+
+/**
+ * The last row of `canvas` that actually has ink, + `pad`. This is where the
+ * paper should be cut — using real pixels (not element boxes) so oversized
+ * boxes around text/QR/barcodes don't leave a gap before the cut. Returns 0 if
+ * the canvas is blank.
+ */
+export function measureInkBottom(canvas, pad = 8) {
+  const { width, height } = canvas
+  if (!width || !height) return 0
+  const data = canvas.getContext('2d').getImageData(0, 0, width, height).data
+  for (let y = height - 1; y >= 0; y--) {
+    const row = y * width * 4
+    for (let x = 0; x < width; x++) {
+      const i = row + x * 4
+      if (data[i] < 250 || data[i + 1] < 250 || data[i + 2] < 250) {
+        return Math.min(height, y + 1 + pad)
+      }
+    }
+  }
+  return 0
 }
 
 /** Draw the model into `canvas` at 576 x `height`. */
@@ -126,11 +148,18 @@ export async function renderToCanvas(canvas, elements, height) {
   return ctx
 }
 
-/** Render the model, trimmed to content height, and return a PNG data URL. */
+/** Render the model, trimmed to the last inked row, and return a PNG data URL. */
 export async function exportPng(elements) {
-  const h = contentBottom(elements)
-  if (h <= 0) throw new Error('Add at least one block before printing.')
+  const boxH = contentBottom(elements)
+  if (boxH <= 0) throw new Error('Add at least one block before printing.')
   const canvas = document.createElement('canvas')
-  await renderToCanvas(canvas, elements, h)
-  return canvas.toDataURL('image/png')
+  await renderToCanvas(canvas, elements, boxH)
+  const inkH = measureInkBottom(canvas, 8)
+  if (inkH <= 0) throw new Error('Nothing to print — your blocks have no content.')
+  if (inkH >= canvas.height) return canvas.toDataURL('image/png')
+  const cropped = document.createElement('canvas')
+  cropped.width = canvas.width
+  cropped.height = inkH
+  cropped.getContext('2d').drawImage(canvas, 0, 0)
+  return cropped.toDataURL('image/png')
 }
