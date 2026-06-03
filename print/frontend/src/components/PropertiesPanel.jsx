@@ -1,3 +1,5 @@
+import { drillGuideHeight } from '../lib/render'
+
 const inputCls =
   'rounded-lg bg-gray-800 border border-gray-700 px-2 py-1 text-sm text-gray-100 focus:border-[#0047AB] outline-none'
 
@@ -135,6 +137,29 @@ export default function PropertiesPanel({ element, onChange, onRemove }) {
               onChange={(e) => set({ displayValue: e.target.checked })}
             />
           </Row>
+        </>
+      )}
+
+      {element.type === 'drillguide' && (
+        <>
+          <Row label="Distance (mm)">
+            <input
+              type="number"
+              min={1}
+              max={120}
+              step={0.5}
+              className={`${inputCls} w-24`}
+              value={element.distanceMm}
+              onChange={(e) => {
+                const mm = Number(e.target.value) || 0
+                set({ distanceMm: mm, h: drillGuideHeight(mm) })
+              }}
+            />
+          </Row>
+          <p className="text-xs text-gray-500">
+            Center-to-center hole spacing. Two crosshairs joined by a line, printed at true scale (assumes a
+            203 dpi printer). Position by dragging; the length is set by the distance.
+          </p>
         </>
       )}
 

@@ -10,6 +10,14 @@ import JsBarcode from 'jsbarcode'
 export const CANVAS_WIDTH = 576
 const FONT_FAMILY = "system-ui, -apple-system, 'Segoe UI', Roboto, 'DejaVu Sans', sans-serif"
 
+// Physical scale: the bitmap prints 1px = 1 dot at 203 dpi (vertical raster is
+// 1:1), so the drill guide renders at true size on paper.
+export const PX_PER_MM = 203 / 25.4 // ≈ 7.99 dots per mm
+export const DRILL_ARM = 12 // crosshair arm length in px (~3mm)
+export const DRILL_WIDTH = 2 * DRILL_ARM + 8
+// Box height so the two crosshair centers are exactly `mm` apart.
+export const drillGuideHeight = (mm) => Math.round(Math.max(0, mm || 0) * PX_PER_MM) + 2 * DRILL_ARM
+
 function wrapLine(ctx, text, maxWidth) {
   const words = String(text ?? '').split(/\s+/).filter(Boolean)
   if (!words.length) return ['']
@@ -86,6 +94,29 @@ async function drawElement(ctx, el) {
       color: { dark: '#000000', light: '#ffffff' },
     })
     ctx.drawImage(tmp, el.x, el.y)
+  } else if (el.type === 'drillguide') {
+    // Two crosshairs a precise center-to-center distance apart, joined by a
+    // vertical line. The centers sit DRILL_ARM in from the top/bottom edges, so
+    // the box height encodes the distance (see drillGuideHeight).
+    const arm = el.arm || DRILL_ARM
+    const cx = el.x + el.w / 2
+    const c1y = el.y + arm
+    const c2y = el.y + el.h - arm
+    ctx.strokeStyle = '#000'
+    ctx.setLineDash([])
+    ctx.lineWidth = el.lineWidth || 2
+    ctx.beginPath()
+    ctx.moveTo(cx, c1y)
+    ctx.lineTo(cx, c2y)
+    ctx.stroke()
+    for (const cy of [c1y, c2y]) {
+      ctx.beginPath()
+      ctx.moveTo(cx - arm, cy)
+      ctx.lineTo(cx + arm, cy)
+      ctx.moveTo(cx, cy - arm)
+      ctx.lineTo(cx, cy + arm)
+      ctx.stroke()
+    }
   } else if (el.type === 'barcode' && el.data) {
     const tmp = document.createElement('canvas')
     try {

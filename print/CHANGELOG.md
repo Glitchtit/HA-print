@@ -1,3 +1,6 @@
+## 0.1.9
+- **Drill guide block.** A new designer block that prints two crosshairs joined by a vertical line, a precise center-to-center distance apart — a drilling/mounting template. Set the spacing in millimeters in the properties panel; it prints at true scale (assumes a 203 dpi printer). Its length follows the distance, so resizing is disabled; just drag to position.
+
 ## 0.1.8
 - **Printer sidebar icon.** The Home Assistant sidebar entry now shows a printer icon (`mdi:printer`) instead of the default puzzle piece.
 

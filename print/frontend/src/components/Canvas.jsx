@@ -114,6 +114,7 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
             key={el.id}
             scale={scale}
             bounds="parent"
+            enableResizing={el.type !== 'drillguide'}
             size={{ width: el.w, height: el.h }}
             position={drag && drag.id === el.id ? { x: drag.x, y: drag.y } : { x: el.x, y: el.y }}
             onDragStart={() => {

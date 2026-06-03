@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { DRILL_WIDTH, drillGuideHeight } from '../lib/render'
 
 const PRESETS = {
   heading: { type: 'text', w: 528, h: 64, text: 'Heading', fontSize: 44, bold: true, align: 'center' },
@@ -7,6 +8,7 @@ const PRESETS = {
   blank: { type: 'divider', w: 528, h: 40, lineStyle: 'blank' },
   qr: { type: 'qr', w: 160, h: 160, data: 'https://example.com', ecc: 'M' },
   barcode: { type: 'barcode', w: 320, h: 100, data: '1234567890', format: 'CODE128', displayValue: true },
+  drillguide: { type: 'drillguide', distanceMm: 50, lineWidth: 2, w: DRILL_WIDTH, h: drillGuideHeight(50) },
 }
 
 function Btn({ emoji, label, onClick }) {
@@ -50,6 +52,7 @@ export default function BlockPalette({ onAdd }) {
       <Btn emoji="␣" label="Blank feed" onClick={() => onAdd({ ...PRESETS.blank })} />
       <Btn emoji="🔳" label="QR code" onClick={() => onAdd({ ...PRESETS.qr })} />
       <Btn emoji="▌▏" label="Barcode" onClick={() => onAdd({ ...PRESETS.barcode })} />
+      <Btn emoji="🎯" label="Drill guide" onClick={() => onAdd({ ...PRESETS.drillguide })} />
       <input
         ref={fileRef}
         type="file"
