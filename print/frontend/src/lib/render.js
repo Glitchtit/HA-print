@@ -146,6 +146,15 @@ export function contentBottom(elements, pad = 8) {
 }
 
 /**
+ * Lowest box edge of any "blank feed" spacer block. These draw no ink but are
+ * intentional trailing space, so they must still extend the print / cut.
+ */
+export function spacerBottom(elements) {
+  const spacers = elements.filter((e) => e.type === 'divider' && e.lineStyle === 'blank')
+  return spacers.length ? Math.max(...spacers.map((e) => e.y + e.h)) : 0
+}
+
+/**
  * The last row of `canvas` that actually has ink, + `pad`. This is where the
  * paper should be cut — using real pixels (not element boxes) so oversized
  * boxes around text/QR/barcodes don't leave a gap before the cut. Returns 0 if
@@ -189,12 +198,13 @@ export async function exportPng(elements) {
   if (boxH <= 0) throw new Error('Add at least one block before printing.')
   const canvas = document.createElement('canvas')
   await renderToCanvas(canvas, elements, boxH)
-  const inkH = measureInkBottom(canvas, 8)
-  if (inkH <= 0) throw new Error('Nothing to print — your blocks have no content.')
-  if (inkH >= canvas.height) return canvas.toDataURL('image/png')
+  // Cut at the last ink, or below a blank-feed spacer if one extends further.
+  const cutH = Math.max(measureInkBottom(canvas, 8), Math.round(spacerBottom(elements)))
+  if (cutH <= 0) throw new Error('Nothing to print — your blocks have no content.')
+  if (cutH >= canvas.height) return canvas.toDataURL('image/png')
   const cropped = document.createElement('canvas')
   cropped.width = canvas.width
-  cropped.height = inkH
+  cropped.height = cutH
   cropped.getContext('2d').drawImage(canvas, 0, 0)
   return cropped.toDataURL('image/png')
 }

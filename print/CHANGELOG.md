@@ -1,3 +1,6 @@
+## 0.1.13
+- **Blank feed now extends the print.** A blank-feed block below your content now pushes the cut line (and the actual cut) down to include the trailing space, instead of being ignored because it has no ink. Other blocks still trim to their printed pixels.
+
 ## 0.1.12
 - **Drill guide crosshairs get a circle.** Each crosshair now has a small circle around it (touching the arm tips), making a clearer center-punch target.
 

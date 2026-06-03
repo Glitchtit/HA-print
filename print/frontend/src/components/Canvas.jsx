@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Rnd } from 'react-rnd'
-import { CANVAS_WIDTH, measureInkBottom, renderToCanvas } from '../lib/render'
+import { CANVAS_WIDTH, measureInkBottom, renderToCanvas, spacerBottom } from '../lib/render'
 import { computeSnap } from '../lib/snap'
 
 /**
@@ -46,7 +46,7 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, offse
       try {
         if (canvasRef.current) {
           await renderToCanvas(canvasRef.current, els, h)
-          setCutY(measureInkBottom(canvasRef.current, 8))
+          setCutY(Math.max(measureInkBottom(canvasRef.current, 8), Math.round(spacerBottom(els))))
         }
       } finally {
         renderingRef.current = false
