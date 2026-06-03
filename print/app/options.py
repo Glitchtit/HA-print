@@ -34,6 +34,7 @@ class Options:
     full_width_px: int = 576
     svg_default_dither: bool = False
     cut_feed_lines: int = 0
+    print_scale_v: float = 1.0
 
     @classmethod
     def load(cls, path: str = "/data/options.json") -> "Options":
@@ -66,6 +67,7 @@ class Options:
             full_width_px=_clamp(int(data.get("full_width_px", 576) or 576), 8, 576),
             svg_default_dither=bool(data.get("svg_default_dither", False)),
             cut_feed_lines=_clamp(int(data.get("cut_feed_lines", 0) or 0), 0, 20),
+            print_scale_v=max(0.5, min(1.5, float(data.get("print_scale_v", 1.0) or 1.0))),
         )
 
 

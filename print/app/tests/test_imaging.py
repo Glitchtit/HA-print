@@ -38,6 +38,14 @@ def test_dither_gradient_is_1bit():
     assert out.mode == "1"
 
 
+def test_height_scale_stretches_only_height():
+    raw = _png(Image.new("RGB", (100, 100), (0, 0, 0)))
+    base = prepare_image(raw, target_width=100, mode="threshold")
+    scaled = prepare_image(raw, target_width=100, mode="threshold", height_scale=1.1)
+    assert scaled.size[0] == base.size[0] == 100  # width unchanged
+    assert scaled.size[1] == round(base.size[1] * 1.1)  # height calibrated up
+
+
 def test_transparent_rgba_flattens_onto_white():
     out = prepare_image(_png(Image.new("RGBA", (8, 8), (0, 0, 0, 0))), target_width=8, mode="threshold")
     # Fully transparent must read as white (unprinted), not black.

@@ -245,6 +245,7 @@ async def print_image(body: PrintImageRequest):
             target_width=body.width_px,
             mode="dither" if body.dither else "threshold",
             threshold=body.threshold,
+            height_scale=OPTIONS.print_scale_v,
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(400, f"could not decode image: {exc}")
@@ -279,7 +280,12 @@ async def print_svg(body: PrintSvgRequest):
 
     dither = OPTIONS.svg_default_dither if body.dither is None else body.dither
     try:
-        img = prepare_image(png, target_width=body.width_px, mode="dither" if dither else "threshold")
+        img = prepare_image(
+            png,
+            target_width=body.width_px,
+            mode="dither" if dither else "threshold",
+            height_scale=OPTIONS.print_scale_v,
+        )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(400, f"could not rasterize SVG: {exc}")
 

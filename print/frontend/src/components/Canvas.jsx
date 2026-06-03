@@ -10,7 +10,10 @@ import { computeSnap } from '../lib/snap'
  * with the dragged block at its (snapped) position, and alignment guidelines
  * are drawn over it. The whole thing is CSS-scaled to fit.
  */
-export default function Canvas({ elements, selectedId, onSelect, onChange, height }) {
+const MIN_HEIGHT = 160 // empty / tiny canvas floor
+const BASE_PAD = 48 // working room kept below the lowest block at offset 0
+
+export default function Canvas({ elements, selectedId, onSelect, onChange, offset = 0 }) {
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
   const [scale, setScale] = useState(1)
@@ -23,6 +26,11 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, heigh
     if (!drag) return elements
     return elements.map((e) => (e.id === drag.id ? { ...e, x: drag.x, y: drag.y } : e))
   }, [elements, drag])
+
+  // Canvas length auto-fits the content (live, so it grows while dragging a
+  // block down), plus the user's offset. Never clips a block.
+  const contentBox = displayElements.length ? Math.max(...displayElements.map((e) => e.y + e.h)) : 0
+  const height = Math.max(contentBox + 8, Math.max(MIN_HEIGHT, contentBox + BASE_PAD) + offset)
 
   // Single-flight render scheduler — coalesces rapid drag updates (last wins)
   // so async image/QR draws never pile up or land out of order.

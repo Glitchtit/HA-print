@@ -28,11 +28,16 @@ def prepare_image(
     target_width: int = FULL_WIDTH_PX,
     mode: ReduceMode = "dither",
     threshold: int = 128,
+    height_scale: float = 1.0,
 ) -> Image.Image:
     """Decode ``raw`` image bytes → resize to ``target_width`` → 1-bit mode.
 
     Transparency is flattened onto white first (thermal paper is white, so
     "transparent" should read as unprinted, not black).
+
+    ``height_scale`` vertically stretches the bitmap before reduction — used to
+    calibrate for a printer whose paper feed differs from its nominal dpi, so
+    physical lengths (e.g. the drill guide) come out correct.
     """
     img = Image.open(io.BytesIO(raw))
 
@@ -48,6 +53,10 @@ def prepare_image(
     if w != target_width:
         new_h = max(1, round(h * (target_width / w)))
         img = img.resize((target_width, new_h), Image.LANCZOS)
+
+    if abs(height_scale - 1.0) > 1e-6:
+        w2, h2 = img.size
+        img = img.resize((w2, max(1, round(h2 * height_scale))), Image.LANCZOS)
 
     gray = img.convert("L")
     if mode == "threshold":

@@ -1,6 +1,6 @@
 {
   "name": "Print",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "slug": "ha_print",
   "description": "Thermal receipt printing (80mm ESC/POS) for HA-stock and HA-recipes",
   "url": "https://github.com/Glitchtit/HA-print",
@@ -48,6 +48,7 @@
     "full_width_px": 576,
     "svg_default_dither": false,
     "cut_feed_lines": 0,
+    "print_scale_v": 1.0,
     "debug": false
   },
   "schema": {
@@ -71,6 +72,7 @@
     "full_width_px": "int(8,576)?",
     "svg_default_dither": "bool?",
     "cut_feed_lines": "int(0,20)?",
+    "print_scale_v": "float(0.5,1.5)?",
     "debug": "bool?"
   }
 }

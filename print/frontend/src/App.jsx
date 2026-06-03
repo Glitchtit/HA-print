@@ -15,7 +15,7 @@ export default function App() {
   const [tab, setTab] = useState('designer')
   const [elements, setElements] = useState([])
   const [selectedId, setSelectedId] = useState(null)
-  const [height, setHeight] = useState(700)
+  const [offset, setOffset] = useState(0)
   const [photoMode, setPhotoMode] = useState(false)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
@@ -124,19 +124,22 @@ export default function App() {
                 Photo mode (dither)
               </label>
               <div className="flex items-center gap-1 text-sm text-gray-400">
-                <span>Length</span>
+                <span title="Canvas auto-fits the content; use ± for extra trailing space">Length</span>
                 <button
-                  onClick={() => setHeight((h) => Math.max(200, h - 100))}
+                  onClick={() => setOffset((o) => o - 40)}
                   className="rounded-lg bg-gray-800 hover:bg-gray-700 w-7 h-7"
+                  title="Less trailing space"
                 >
                   −
                 </button>
                 <button
-                  onClick={() => setHeight((h) => h + 100)}
+                  onClick={() => setOffset((o) => o + 40)}
                   className="rounded-lg bg-gray-800 hover:bg-gray-700 w-7 h-7"
+                  title="More trailing space"
                 >
                   +
                 </button>
+                <span className="text-red-400 text-xs tabular-nums">{offset > 0 ? `+${offset}` : offset}px</span>
               </div>
               {msg && (
                 <span className={`text-sm ${msg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{msg.text}</span>
@@ -149,7 +152,7 @@ export default function App() {
                 selectedId={selectedId}
                 onSelect={setSelectedId}
                 onChange={updateElement}
-                height={height}
+                offset={offset}
               />
             </div>
             <p className="mt-2 text-xs text-gray-500">

@@ -157,8 +157,9 @@ export default function PropertiesPanel({ element, onChange, onRemove }) {
             />
           </Row>
           <p className="text-xs text-gray-500">
-            Center-to-center hole spacing. Two crosshairs joined by a line, printed at true scale (assumes a
-            203 dpi printer). Position by dragging; the length is set by the distance.
+            Center-to-center hole spacing. Two crosshairs joined by a line, printed at true scale. Position by
+            dragging; the length is set by the distance. If a printed guide measures off, calibrate with the
+            add-on's <span className="font-mono">print_scale_v</span> option (intended ÷ measured).
           </p>
         </>
       )}

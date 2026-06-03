@@ -1,3 +1,9 @@
+## 0.1.11
+- **Vertical print calibration (`print_scale_v`).** Thermal printers' paper feed varies slightly from their nominal dpi, so a drill guide can print a hair short (e.g. 300mm measuring ~297mm). New option vertically scales the printed bitmap to correct it: set `print_scale_v` to intended ÷ measured (e.g. 300/297 ≈ 1.010). Default 1.0 (no change). Applies to the designer and SVG prints.
+
+## 0.1.10
+- **Canvas auto-fits the content.** The designer canvas now grows and shrinks to fit the blocks (live, while you drag) instead of being a fixed length. The ± buttons are now a trailing-space offset on top of the auto-fit, shown in red next to them.
+
 ## 0.1.9
 - **Drill guide block.** A new designer block that prints two crosshairs joined by a vertical line, a precise center-to-center distance apart — a drilling/mounting template. Set the spacing in millimeters in the properties panel; it prints at true scale (assumes a 203 dpi printer). Its length follows the distance, so resizing is disabled; just drag to position.
 
