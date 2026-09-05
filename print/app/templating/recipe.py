@@ -1,6 +1,7 @@
 """Render a recipe onto an escpos printer-like object.
 
-Includes optional hero image rendering via Pillow (downscale → 1-bit dither).
+Includes optional hero image rendering via Pillow (downscale → 1-bit dither)
+and a QR code for the recipe's source URL at the bottom.
 Text styles for title / header / item / note come from the caller — defaults
 target a dense layout where the body text is in Font B (small) and the title
 is bold double-height.
@@ -32,6 +33,7 @@ def render(
     note_style: TextStyle | None = None,
     header_text: str | None = None,
     footer_text: str | None = None,
+    qr_size: int = 6,
 ) -> dict[str, int]:
     """Render a recipe. Returns a small summary dict."""
     name = safe_text(recipe.get("name") or "Recipe")
@@ -119,13 +121,24 @@ def render(
             printer.text(indent + cont + "\n")
         printer.text("\n")
 
-    # Source line (kept in note style — typically smallest)
+    # ── Source: QR code (scannable) + URL text (fallback) ──────────────────
     src = safe_text(recipe.get("source_url") or "")
     if src:
+        printer.set(align="center")
+        if _is_web_url(src):
+            try:
+                # Software-rendered QR (python-escpos → qrcode → raster). The
+                # `center` flag needs a profile media width we don't have, so
+                # centre via ESC a like the hero image above.
+                printer.qr(src, size=qr_size, center=False, image_arguments={"impl": image_impl})
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to render source QR code: %s", exc)
         note_style.apply(printer)
         note_width = note_style.width_chars(column_width)
         for line in textwrap.wrap(src, width=note_width) or [""]:
             printer.text(line + "\n")
+        TextStyle().apply(printer)
+        printer.set(align="left")
 
     # ── Optional user footer ───────────────────────────────────────────────
     if footer_text:
@@ -144,6 +157,11 @@ def render(
         "steps_printed": len(instructions),
         "image_printed": 1 if image_bytes else 0,
     }
+
+
+def _is_web_url(s: str) -> bool:
+    """Only http(s) sources get a QR code — a cookbook page reference does not."""
+    return s.lower().startswith(("http://", "https://"))
 
 
 def _render_ingredient(

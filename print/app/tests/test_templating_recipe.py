@@ -131,3 +131,42 @@ def test_keeps_note_when_it_adds_information():
     text = out.decode("cp858", errors="replace")
     assert "muna" in text
     assert "huoneenlampoinen" in text
+
+
+RASTER_HEADER = b"\x1dv0"  # GS v 0 — python-escpos bitImageRaster output
+
+
+def test_prints_qr_code_for_source_url():
+    out = _render(
+        recipe={
+            "name": "QR",
+            "source_url": "https://example.com/reseptit/mustikkapiirakka",
+            "ingredients": [],
+            "instructions": [],
+        },
+    )
+    # No hero image was given, so the only raster block is the QR code.
+    assert out.count(RASTER_HEADER) >= 1
+    # The URL text is still printed as a fallback under the QR.
+    assert b"https://example.com/reseptit/mustikkapiirakka" in out
+
+
+def test_no_qr_code_without_source_url():
+    out = _render(recipe={"name": "NoQR", "ingredients": [], "instructions": []})
+    assert RASTER_HEADER not in out
+
+
+def test_no_qr_code_for_non_http_source():
+    out = _render(
+        recipe={"name": "Book", "source_url": "Mummon keittokirja s. 12", "ingredients": [], "instructions": []},
+    )
+    assert RASTER_HEADER not in out
+    assert b"Mummon keittokirja" in out
+
+
+def test_qr_code_prints_before_footer():
+    out = _render(
+        recipe={"name": "Order", "source_url": "https://example.com/r", "ingredients": [], "instructions": []},
+        footer_text="Hyvaa ruokahalua",
+    )
+    assert out.index(RASTER_HEADER) < out.index(b"Hyvaa ruokahalua")

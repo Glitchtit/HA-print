@@ -1,3 +1,6 @@
+## 0.1.15
+- **QR code on printed recipes.** A recipe receipt now ends with a QR code pointing at the recipe's original web page, with the URL printed underneath as a fallback. Recipes without an http(s) source (e.g. a cookbook reference) print as before.
+
 ## 0.1.14
 - **Smooth downward dragging.** Dragging a block down now expands the canvas continuously under the cursor instead of catching on the old canvas edge (which forced repeated release-and-redrag). Blocks are still kept within the paper width and above the top.
 
