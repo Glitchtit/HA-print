@@ -172,8 +172,15 @@ def _render_ingredient(
     item_style: TextStyle,
     note_style: TextStyle,
 ) -> None:
-    amount = ing.get("amount") if "amount" in ing else ing.get("amount_needed")
-    unit = ing.get("unit") if "unit" in ing else ing.get("unit_abbrev")
+    # Callers use either HA-print's names (amount/unit) or HA-recipes' names
+    # (amount_needed/unit_abbrev). After pydantic's model_dump() *both* keys are
+    # present with the unused one None, so pick by value, not by key presence.
+    amount = ing.get("amount")
+    if amount is None:
+        amount = ing.get("amount_needed")
+    unit = ing.get("unit")
+    if unit is None:
+        unit = ing.get("unit_abbrev")
     name = safe_text(ing.get("name") or ing.get("product_name") or "")
     parent = safe_text(ing.get("parent_name") or "")
     note = safe_text(ing.get("note") or "")

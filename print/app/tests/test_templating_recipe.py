@@ -170,3 +170,24 @@ def test_qr_code_prints_before_footer():
         footer_text="Hyvaa ruokahalua",
     )
     assert out.index(RASTER_HEADER) < out.index(b"Hyvaa ruokahalua")
+
+
+def test_amount_needed_used_when_amount_key_is_none():
+    # Shape produced by PrintRecipeRequest.model_dump(): every alias present,
+    # the unused ones None.
+    out = _render(
+        recipe={
+            "name": "X",
+            "ingredients": [
+                {
+                    "name": None, "product_name": "maito",
+                    "amount": None, "amount_needed": 5,
+                    "unit": None, "unit_abbrev": "dl",
+                    "parent_name": None, "note": None,
+                }
+            ],
+            "instructions": [],
+        },
+    )
+    text = out.decode("cp858", errors="replace")
+    assert "5 dl maito" in text

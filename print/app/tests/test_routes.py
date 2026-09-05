@@ -148,6 +148,10 @@ def test_print_recipe_route(configured_options, fake_printer):
     assert body["steps_printed"] == 2
     out = fake_printer["dummy"].output.decode("cp858", errors="replace")
     assert "Pannukakku" in out
+    # Amounts must survive the pydantic round-trip (model_dump materialises
+    # `amount: None` next to `amount_needed: 5` — the renderer must not prefer
+    # the None). Regression: HA-recipes prints had no quantities.
+    assert "5 dl maito" in out
     assert "Vatkaa" in out
 
 

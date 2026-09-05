@@ -1,3 +1,6 @@
+## 0.1.16
+- **Fix: ingredient amounts missing on recipes printed from HA-recipes.** Quantities sent as `amount_needed` / `unit_abbrev` (the HA-recipes 🖨 button) were dropped because the request model materialised an empty `amount` / `unit` alongside them and the renderer preferred the empty one. Amounts now print again (e.g. `- 5 dl maito`). The `ha_print.recipe` service path was unaffected.
+
 ## 0.1.15
 - **QR code on printed recipes.** A recipe receipt now ends with a QR code pointing at the recipe's original web page, with the URL printed underneath as a fallback. Recipes without an http(s) source (e.g. a cookbook reference) print as before.
 
