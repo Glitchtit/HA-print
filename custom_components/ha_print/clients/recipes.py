@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 import httpx
+from homeassistant.util.ssl import get_default_context
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class RecipesClient:
         self.base_url = base_url.rstrip("/")
 
     async def fetch_recipe(self, recipe_id: int) -> dict[str, Any]:
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(verify=get_default_context(), timeout=15) as client:
             r = await client.get(f"{self.base_url}/api/recipe/{int(recipe_id)}")
             if r.status_code == 404:
                 raise FileNotFoundError(f"Recipe {recipe_id} not found")

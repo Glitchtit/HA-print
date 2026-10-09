@@ -8,6 +8,7 @@ import httpx
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.util.ssl import get_default_context
 
 from .const import (
     ADDON_SLUG_PRINT,
@@ -24,7 +25,7 @@ async def _discover_addon_url() -> str | None:
     if not token:
         return None
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(verify=get_default_context(), timeout=5) as client:
             r = await client.get(
                 f"http://supervisor/addons/{ADDON_SLUG_PRINT}/info",
                 headers={"Authorization": f"Bearer {token}"},
@@ -41,7 +42,7 @@ async def _discover_addon_url() -> str | None:
 
 async def _test_connection(url: str) -> bool:
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(verify=get_default_context(), timeout=5) as client:
             r = await client.get(f"{url.rstrip('/')}/api/health")
             return r.status_code == 200
     except Exception:  # noqa: BLE001

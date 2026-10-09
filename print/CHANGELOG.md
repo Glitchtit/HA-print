@@ -1,3 +1,7 @@
+## 0.1.17
+
+- Integration 0.1.1: no more "Detected blocking call to load_verify_locations" warnings at Home Assistant startup. HTTP clients now reuse Home Assistant's pre-built SSL context instead of loading the certificate bundle inside the event loop
+
 ## 0.1.16
 - **Fix: ingredient amounts missing on recipes printed from HA-recipes.** Quantities sent as `amount_needed` / `unit_abbrev` (the HA-recipes 🖨 button) were dropped because the request model materialised an empty `amount` / `unit` alongside them and the renderer preferred the empty one. Amounts now print again (e.g. `- 5 dl maito`). The `ha_print.recipe` service path was unaffected.
 
