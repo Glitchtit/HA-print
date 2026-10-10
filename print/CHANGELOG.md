@@ -1,3 +1,9 @@
+## 0.1.18
+
+- Shopping lists print each row's quantity the way Storage shows it, units included ("3,5 dl Kerma" instead of "3.5 Kerma"); requests may send `qty_text`, which wins over `amount` + `unit`
+- A to-taste recipe ingredient prints "Suola (maun mukaan)" instead of "0 rs Suola"
+- Integration 0.1.2: `ha_print.shopping_list` sends each row's unit and quantity text from Storage, prints free-text notes as the item (like HA-stock), and sorts aisles with HA-stock's full list (116 keywords, previously 32, so far fewer items land in "Muut"); `ha_print.recipe` prints the recipe again instead of an empty one titled "Recipe"
+
 ## 0.1.17
 
 - Integration 0.1.1: no more "Detected blocking call to load_verify_locations" warnings at Home Assistant startup. HTTP clients now reuse Home Assistant's pre-built SSL context instead of loading the certificate bundle inside the event loop

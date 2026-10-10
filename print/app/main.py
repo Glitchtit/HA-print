@@ -60,6 +60,7 @@ class ShoppingItem(BaseModel):
     name: str
     amount: float | int | None = None
     unit: str | None = None
+    qty_text: str | None = None  # Storage's display text ("3,5 dl"); wins over amount + unit
     done: bool = False
     note: str | None = None
 

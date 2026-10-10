@@ -161,3 +161,11 @@ def test_header_and_footer_text():
     assert text.index("Wredlund household") < text.index("Ostoslista")
     # Footer appears after the items
     assert text.index("Banaani") < text.index("Tervetuloa kauppaan!")
+
+
+def test_storage_quantity_text_is_printed_as_given():
+    out = _render(
+        aisles=[{"label": "A", "items": [{"name": "Kerma", "amount": 3.5, "unit": "dl", "qty_text": "3,5 dl"}]}],
+        column_width=32,
+    )
+    assert "[ ] 3,5 dl Kerma" in _strip(out)

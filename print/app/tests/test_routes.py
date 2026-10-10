@@ -262,3 +262,11 @@ def test_header_text_option_threads_through_to_template(monkeypatch, fake_printe
     out = fake_printer["dummy"].output.decode("cp858", errors="replace")
     assert "Hello household" in out
     assert "Bye" in out
+
+
+def test_print_shopping_list_route_prints_quantity_text(configured_options, fake_printer):
+    with TestClient(main_mod.app) as client:
+        r = client.post("/api/print/shopping-list", json={"aisles": [{"label": "Maitotuotteet", "items": [
+            {"name": "Kerma", "amount": 3.5, "unit": "dl", "qty_text": "3,5 dl"}]}]})
+    assert r.status_code == 200, r.text
+    assert "3,5 dl Kerma" in fake_printer["dummy"].output.decode("cp858", errors="replace")

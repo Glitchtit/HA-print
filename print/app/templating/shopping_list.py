@@ -120,7 +120,7 @@ def _render_item(
     note_style: TextStyle,
 ) -> None:
     name = safe_text(item.get("name") or "")
-    qty = qty_unit(item.get("amount"), item.get("unit"))
+    qty = safe_text(item.get("qty_text") or "").strip() or qty_unit(item.get("amount"), item.get("unit"))
     note = safe_text(item.get("note") or "")
     done = bool(item.get("done"))
 

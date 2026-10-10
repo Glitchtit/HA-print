@@ -191,3 +191,11 @@ def test_amount_needed_used_when_amount_key_is_none():
     )
     text = out.decode("cp858", errors="replace")
     assert "5 dl maito" in text
+
+
+def test_to_taste_ingredients_print_maun_mukaan_instead_of_zero():
+    out = _render(recipe={"name": "X", "ingredients": [{"name": "Suola", "amount": 0, "unit": "rs"}],
+                          "instructions": []})
+    text = out.decode("cp858", errors="replace")
+    assert "- Suola (maun mukaan)" in text
+    assert "0 rs" not in text

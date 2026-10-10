@@ -42,8 +42,8 @@ No standalone test suite. The integration is exercised live in Home Assistant.
 ## Aisle ordering
 
 `custom_components/ha_print/aisles.py` mirrors `FI_AISLE_ORDER` from
-`HA-stock/stock/frontend/src/App.jsx:112-155`. **KEEP IN SYNC** if the JS list
-changes. The add-on itself never groups items — only the integration's
+`HA-stock/stock/frontend/src/App.jsx`, entry for entry and in order. **KEEP IN SYNC**
+if the JS list changes; `tests/test_aisles.py` checks the entry count. The add-on itself never groups items — only the integration's
 `ha_print.shopping_list` service handler does (frontends pre-group before POSTing).
 
 ## Recipe shape

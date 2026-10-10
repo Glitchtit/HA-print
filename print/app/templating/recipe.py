@@ -188,7 +188,10 @@ def _render_ingredient(
     qty = ""
     a = fmt_amount(amount)
     u = (unit or "").strip()
-    if a and u:
+    to_taste = a == "0"  # HA-recipes stores "to taste" as amount 0
+    if to_taste:
+        qty = ""
+    elif a and u:
         qty = f"{a} {u}"
     elif a:
         qty = a
@@ -198,6 +201,8 @@ def _render_ingredient(
 
     prefix = f"- {qty} " if qty else "- "
     suffix = f" ({parent})" if parent else ""
+    if to_taste:
+        suffix += " (maun mukaan)"
     body = name + suffix
     body_budget = max(8, body_width - len(prefix))
 
