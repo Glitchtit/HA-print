@@ -42,3 +42,23 @@ def test_aisle_order_follows_ha_stock():
     assert aisles.aisle_for("Lastenpyyhe") == (13, "Vauva & lemmikki")  # baby before hygiene
     assert aisles.aisle_for("Käsipyyhe") == (12, "Hygienia & kosmetiikka")
     assert len(aisles.FI_AISLE_ORDER) == 116
+
+
+def test_a_generic_row_prints_the_product_to_buy_in_its_aisle():
+    products = [{"id": 20, "name": "Crème fraîche", "kind": "concept", "product_group_id": 2},
+                {"id": 21, "name": "Pirkka creme fraiche 150g", "product_group_id": 1}]
+    rows = [{"id": 3, "product_id": 20, "amount": 1, "done": False, "note": "",
+             "display": {"qty_text": "1", "unit_abbr": None, "unit_dimension": "package",
+                         "buy_product_id": 21, "buy_product_name": "Pirkka creme fraiche 150g"}}]
+    [aisle] = _group(rows, products)
+    assert aisle["label"] == aisles.aisle_for("Maitotuotteet")[1]
+    assert aisle["items"][0]["name"] == "Pirkka creme fraiche 150g"
+
+
+def test_a_generic_row_without_a_pick_prints_the_generic_name():
+    products = [{"id": 22, "name": "Juustokreemi", "kind": "concept", "product_group_id": 1}]
+    rows = [{"id": 4, "product_id": 22, "amount": 1, "done": False, "note": "",
+             "display": {"qty_text": "1", "unit_abbr": None, "unit_dimension": "package",
+                         "buy_product_id": None, "buy_product_name": None}}]
+    [aisle] = _group(rows, products)
+    assert aisle["items"][0]["name"] == "Juustokreemi"

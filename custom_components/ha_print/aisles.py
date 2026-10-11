@@ -172,20 +172,27 @@ def group_items_by_aisle(
     buckets: dict[int, dict[str, Any]] = {}
 
     for item in items:
+        display = item.get("display") or {}
         product = products_by_id.get(int(item.get("product_id") or 0))
+        # A generic row ("Crème fraîche") prints as the product Storage picked
+        # to buy, in that product's aisle when it has one.
+        buy_id = display.get("buy_product_id")
+        picked = buy_id is not None and buy_id != item.get("product_id")
+        buy = products_by_id.get(int(buy_id)) if picked else None
+        grouped = buy if buy and buy.get("product_group_id") is not None else product
         group_name = ""
-        if product and product.get("product_group_id") is not None:
-            grp = groups_by_id.get(int(product["product_group_id"]))
+        if grouped and grouped.get("product_group_id") is not None:
+            grp = groups_by_id.get(int(grouped["product_group_id"]))
             if grp:
                 group_name = grp.get("name") or ""
         idx, label = aisle_for(group_name)
         if idx not in buckets:
             buckets[idx] = {"idx": idx, "label": label, "items": []}
-        display = item.get("display") or {}
         if (product or {}).get("name") == NOTE_SENTINEL_NAME:
             name, unit, qty_text, note = item.get("note") or NOTE_SENTINEL_NAME, None, None, None
         else:
-            name = (product or {}).get("name") or item.get("ha_item_name") or "(item)"
+            name = ((display.get("buy_product_name") if picked else None)
+                    or (product or {}).get("name") or item.get("ha_item_name") or "(item)")
             # Storage's display block: "3,5 dl" for a recipe need, "2" for packages.
             unit, qty_text, note = display.get("unit_abbr"), display.get("qty_text"), item.get("note")
         buckets[idx]["items"].append(
