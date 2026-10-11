@@ -1,3 +1,7 @@
+## 0.1.19
+
+- Integration 0.1.3: `ha_print.shopping_list` prints the product to buy for a generic item ("Pirkka creme fraiche 18% 150g" instead of "Crème fraîche"), in that product's aisle
+
 ## 0.1.18
 
 - Shopping lists print each row's quantity the way Storage shows it, units included ("3,5 dl Kerma" instead of "3.5 Kerma"); requests may send `qty_text`, which wins over `amount` + `unit`
