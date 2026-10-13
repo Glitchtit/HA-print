@@ -75,7 +75,7 @@ class Aisle(BaseModel):
 class PrintShoppingListRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    title: str | None = "Ostoslista"
+    title: str | None = "Shopping list"
     timestamp: str | None = None
     aisles: list[Aisle] = Field(default_factory=list)
     done_filter: Literal["skip", "strike", "include"] = "strike"
@@ -174,7 +174,7 @@ async def print_shopping_list(body: PrintShoppingListRequest):
         with thermal_printer(OPTIONS) as p:
             summary = list_tpl.render(
                 p,
-                title=body.title or "Ostoslista",
+                title=body.title or "Shopping list",
                 timestamp=body.timestamp,
                 aisles=aisles,
                 done_filter=body.done_filter,

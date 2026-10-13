@@ -14,7 +14,7 @@ from .style import TextStyle
 def render(
     printer,
     *,
-    title: str = "Ostoslista",
+    title: str = "Shopping list",
     timestamp: str | None = None,
     aisles: list[dict] | None = None,
     done_filter: str = "strike",
@@ -83,7 +83,7 @@ def render(
     if items_printed == 0:
         printer.text("\n")
         printer.set(align="center")
-        printer.text("(tyhja lista)\n")
+        printer.text("(empty list)\n")
         printer.set(align="left")
 
     # ── Optional user footer ───────────────────────────────────────────────

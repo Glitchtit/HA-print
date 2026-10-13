@@ -37,8 +37,8 @@ def test_renders_recipe_without_image():
     )
     text = out.decode("cp858", errors="replace")
     assert "Mustikkapiirakka" in text
-    assert "Annokset: 8" in text
-    assert "Ainekset" in text and "Ohjeet" in text
+    assert "Servings: 8" in text
+    assert "Ingredients" in text and "Steps" in text
     assert "mustikoita" in text and "muna" in text
     assert "huoneenlampöinen" in text or "huoneenlamp" in text  # codepage might mangle ö
     assert "1." in text and "2." in text
@@ -63,10 +63,10 @@ def test_step_wraps_long_instructions():
         column_width=32,
     )
     text = out.decode("cp858", errors="replace")
-    # Find lines in the instructions section (after "Ohjeet")
-    idx = text.index("Ohjeet")
+    # Find lines in the instructions section (after "Steps")
+    idx = text.index("Steps")
     instruction_block = text[idx:]
-    body_lines = [l for l in instruction_block.splitlines() if l and "Ohjeet" not in l and "---" not in l]
+    body_lines = [l for l in instruction_block.splitlines() if l and "Steps" not in l and "---" not in l]
     # At least 2 lines for a wrapped step
     assert len(body_lines) >= 2
 
@@ -193,9 +193,9 @@ def test_amount_needed_used_when_amount_key_is_none():
     assert "5 dl maito" in text
 
 
-def test_to_taste_ingredients_print_maun_mukaan_instead_of_zero():
+def test_to_taste_ingredients_print_to_taste_instead_of_zero():
     out = _render(recipe={"name": "X", "ingredients": [{"name": "Suola", "amount": 0, "unit": "rs"}],
                           "instructions": []})
     text = out.decode("cp858", errors="replace")
-    assert "- Suola (maun mukaan)" in text
+    assert "- Suola (to taste)" in text
     assert "0 rs" not in text

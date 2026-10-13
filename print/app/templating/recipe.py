@@ -75,7 +75,7 @@ def render(
     TextStyle().apply(printer)  # reset
     printer.set(align="center")
     if servings is not None:
-        printer.text(f"Annokset: {fmt_amount(servings)}\n")
+        printer.text(f"Servings: {fmt_amount(servings)}\n")
     printer.set(align="left")
 
     # The body is laid out in `item_style` (Font B by default). Compute the
@@ -88,7 +88,7 @@ def render(
 
     # ── Ingredients ────────────────────────────────────────────────────────
     header_style.apply(printer)
-    printer.text("Ainekset\n")
+    printer.text("Ingredients\n")
     TextStyle().apply(printer)
 
     for ing in ingredients:
@@ -104,7 +104,7 @@ def render(
 
     # ── Instructions ───────────────────────────────────────────────────────
     header_style.apply(printer)
-    printer.text("Ohjeet\n")
+    printer.text("Steps\n")
     TextStyle().apply(printer)
 
     item_style.apply(printer)
@@ -202,7 +202,7 @@ def _render_ingredient(
     prefix = f"- {qty} " if qty else "- "
     suffix = f" ({parent})" if parent else ""
     if to_taste:
-        suffix += " (maun mukaan)"
+        suffix += " (to taste)"
     body = name + suffix
     body_budget = max(8, body_width - len(prefix))
 

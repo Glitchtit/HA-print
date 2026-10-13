@@ -1,3 +1,7 @@
+## 0.1.21
+
+- Receipts are printed in English: "Shopping list", "Servings", "Ingredients", "Steps", "(to taste)" and "(empty list)". Product names and aisle names stay in Finnish
+
 ## 0.1.20
 
 - New icon and logo in the add-on store, part of one matching set across all GlitchyRee apps

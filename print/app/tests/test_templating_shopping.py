@@ -37,9 +37,9 @@ def _render(**kwargs) -> bytes:
 def test_renders_empty_list_with_placeholder():
     out = _render(aisles=[], timestamp="2026-05-14 12:00")
     text = out.decode("cp858", errors="replace")
-    assert "Ostoslista" in text
+    assert "Shopping list" in text
     assert "2026-05-14 12:00" in text
-    assert "tyhja lista" in text
+    assert "empty list" in text
 
 
 def test_renders_two_aisles_in_order():
@@ -157,8 +157,8 @@ def test_header_and_footer_text():
         footer_text="Tervetuloa kauppaan!",
     )
     text = _strip(out)
-    # Header appears before "Ostoslista" title
-    assert text.index("Wredlund household") < text.index("Ostoslista")
+    # Header appears before "Shopping list" title
+    assert text.index("Wredlund household") < text.index("Shopping list")
     # Footer appears after the items
     assert text.index("Banaani") < text.index("Tervetuloa kauppaan!")
 
