@@ -1,3 +1,8 @@
+## 0.1.20
+
+- New icon and logo in the add-on store, part of one matching set across all GlitchyRee apps
+- Integration 0.1.4: its own icon and logo on the Integrations page (Home Assistant 2026.3 or newer)
+
 ## 0.1.19
 
 - Integration 0.1.3: `ha_print.shopping_list` prints the product to buy for a generic item ("Pirkka creme fraiche 18% 150g" instead of "Crème fraîche"), in that product's aisle
