@@ -54,7 +54,7 @@
 | `enable_cut` | `true` | Partial cut after each receipt. |
 | `cut_feed_lines` | `0` | Extra blank lines before the cut (0–20). |
 | `column_width` | `48` | Characters per line (16–80). The XP-80T fits 48 in Font A. |
-| `title_style` | `a1x2-bold` | Style of the title ("Ostoslista" or the recipe name). |
+| `title_style` | `a1x2-bold` | Style of the title ("Shopping list" or the recipe name). |
 | `header_style` | `a-bold-underline` | Style of aisle and section headers ("Ainekset", "Ohjeet"). |
 | `item_style` | `b` | Style of list items, ingredients and steps. |
 | `note_style` | `b` | Style of item notes, the source URL and header/footer text. |
