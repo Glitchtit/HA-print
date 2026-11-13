@@ -15,6 +15,13 @@ from .const import DOMAIN
 # Printing the shopping list is the user's exposed script, so only recipes are here.
 ACTIONS = ("recipe",)
 
+# Some agents load tools on demand (tool search): this line is how they
+# learn the tools exist.
+PROMPT = (
+    "ha_print__recipe prints a saved recipe on the receipt printer; get the"
+    " recipe's ID from ha_recipes__search first."
+)
+
 
 @callback
 def async_get_tools(
@@ -28,4 +35,4 @@ def async_get_tools(
         for action in ACTIONS
         if hass.services.has_service(DOMAIN, action)
     ]
-    return LLMTools(tools=tools) if tools else None
+    return LLMTools(tools=tools, prompt=PROMPT) if tools else None
