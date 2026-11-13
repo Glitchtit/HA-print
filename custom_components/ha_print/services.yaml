@@ -24,11 +24,12 @@ recipe:
   name: Print recipe
   description: >
     Fetch a recipe from HA-recipes (by ID) and print it on the configured
-    thermal printer, including the hero image if present.
+    thermal printer, including the hero image if present. Example: "print the
+    lasagna recipe". Find the recipe's ID with ha_recipes.search first.
   fields:
     recipe_id:
       name: Recipe ID
-      description: The numeric ID of the recipe to print.
+      description: The numeric ID of the recipe to print, as returned by ha_recipes.search.
       required: true
       example: 12
       selector:

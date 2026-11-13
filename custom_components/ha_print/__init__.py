@@ -9,8 +9,9 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.service import async_get_all_descriptions
 
 from .aisles import group_items_by_aisle
 from .clients.printer import PrinterClient
@@ -92,7 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception as exc:  # noqa: BLE001
             raise HomeAssistantError(f"Print failed: {exc}") from exc
 
-    async def _recipe_service(call: ServiceCall) -> None:
+    async def _recipe_service(call: ServiceCall) -> dict:
         if recipes is None:
             raise HomeAssistantError(
                 "HA-recipes add-on was not auto-discovered; cannot fetch recipe."
@@ -141,6 +142,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await printer.print_recipe(payload)
         except Exception as exc:  # noqa: BLE001
             raise HomeAssistantError(f"Print failed: {exc}") from exc
+        return {"printed": payload["recipe"]["name"]}
 
     if not hass.services.has_service(DOMAIN, SERVICE_SHOPPING_LIST):
         hass.services.async_register(
@@ -150,10 +152,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             schema=SHOPPING_LIST_SCHEMA,
         )
     if not hass.services.has_service(DOMAIN, SERVICE_RECIPE):
+        # Answers with what it printed: an Assist tool call always asks for a response.
         hass.services.async_register(
-            DOMAIN, SERVICE_RECIPE, _recipe_service, schema=RECIPE_SCHEMA
+            DOMAIN,
+            SERVICE_RECIPE,
+            _recipe_service,
+            schema=RECIPE_SCHEMA,
+            supports_response=SupportsResponse.OPTIONAL,
         )
 
+    # llm.py builds its tools from HA's action description cache, which is
+    # otherwise only filled once a frontend asks for it.
+    await async_get_all_descriptions(hass)
     return True
 
 
