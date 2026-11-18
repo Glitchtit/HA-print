@@ -270,3 +270,36 @@ def test_print_shopping_list_route_prints_quantity_text(configured_options, fake
             {"name": "Kerma", "amount": 3.5, "unit": "dl", "qty_text": "3,5 dl"}]}]})
     assert r.status_code == 200, r.text
     assert "3,5 dl Kerma" in fake_printer["dummy"].output.decode("cp858", errors="replace")
+
+
+def _png_bytes() -> bytes:
+    buf = io.BytesIO()
+    Image.new("1", (8, 8), color=1).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _closed_port() -> int:
+    import socket
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+@pytest.mark.parametrize(
+    "path,body",
+    [
+        ("/api/print/shopping-list", {"aisles": [{"label": "Maito", "items": [{"name": "Maito"}]}]}),
+        ("/api/print/recipe", {"recipe": {"name": "Puuro", "ingredients": [], "instructions": []}}),
+        ("/api/print/image", {"image_b64": base64.b64encode(_png_bytes()).decode("ascii")}),
+    ],
+)
+def test_unreachable_printer_returns_503_with_address(monkeypatch, path, body):
+    port = _closed_port()
+    opts = Options.load(path="/nonexistent.json")
+    opts.printer_host = "127.0.0.1"
+    opts.printer_port = port
+    monkeypatch.setattr(main_mod, "OPTIONS", opts)
+    resp = TestClient(main_mod.app).post(path, json=body)
+    assert resp.status_code == 503
+    assert f"Printer not reachable at 127.0.0.1:{port}" in resp.json()["detail"]

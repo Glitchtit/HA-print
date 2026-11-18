@@ -1,3 +1,7 @@
+## 0.1.23
+
+- A switched-off or unreachable printer is reported as "Printer not reachable at <host>:<port>: Connection refused" (HTTP 503), so HA-stock's toast and the `ha_print` actions say what is wrong instead of "status code 500"
+
 ## 0.1.22
 
 - Dashes, curly quotes, "…", "•" and thin spaces print as their plain counterparts (-, ', ", ..., *) instead of "?": HA-stock's "Shopping list — K-Citymarket" and recipes copied from the web come out readable
