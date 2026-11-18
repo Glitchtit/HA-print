@@ -11,6 +11,8 @@ import socket
 from contextlib import contextmanager
 from typing import Iterator, Optional
 
+from escpos.exceptions import DeviceNotFoundError
+from escpos.exceptions import Error as EscposError
 from escpos.printer import Network
 
 from .options import Options
@@ -48,6 +50,17 @@ def thermal_printer(options: Options) -> Iterator[Network]:
         )
     except Exception as exc:  # noqa: BLE001 — wrap all socket/profile errors
         raise PrinterError(f"Failed to open printer: {exc}") from exc
+
+    # Network connects lazily on first use and the setup steps below swallow
+    # their errors, so connect here to report an unreachable printer clearly.
+    try:
+        printer.open()
+    except (DeviceNotFoundError, OSError) as exc:
+        # escpos wraps the socket's OSError; show that one ("Connection refused").
+        reason = exc.__context__ if isinstance(exc, DeviceNotFoundError) and exc.__context__ else exc
+        raise PrinterError(
+            f"Printer not reachable at {options.printer_host}:{options.printer_port}: {reason}"
+        ) from exc
 
     try:
         try:
@@ -96,6 +109,8 @@ def thermal_printer(options: Options) -> Iterator[Network]:
                 logger.warning("Beep failed: %s", exc)
     except (OSError, socket.timeout) as exc:
         raise PrinterError(f"Connection lost: {exc}") from exc
+    except EscposError as exc:
+        raise PrinterError(f"Printer error: {exc}") from exc
     finally:
         try:
             printer.close()
