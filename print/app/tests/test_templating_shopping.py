@@ -169,3 +169,19 @@ def test_storage_quantity_text_is_printed_as_given():
         column_width=32,
     )
     assert "[ ] 3,5 dl Kerma" in _strip(out)
+
+
+def test_typographic_characters_do_not_print_as_question_marks():
+    p = Dummy()
+    p.charcode("CP858")
+    list_tpl.render(
+        p,
+        title="Shopping list — K-Citymarket",
+        aisles=[{"label": "Muut", "items": [{"name": "“Maito”", "note": "1–2 l…"}]}],
+        timestamp="2026-11-18 12:00",
+    )
+    text = _strip(p.output)
+    assert "?" not in text
+    assert "Shopping list - K-Citymarket" in text
+    assert '"Maito"' in text
+    assert "1-2 l..." in text
