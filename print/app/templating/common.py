@@ -51,8 +51,20 @@ def now_stamp() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
+# Typographic characters CP858 lacks; python-escpos would print each as "?".
+_ASCII_TYPOGRAPHY = str.maketrans({
+    "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2013": "-", "\u2014": "-", "\u2212": "-",
+    "\u2018": "'", "\u2019": "'", "\u201a": "'", "\u2032": "'",
+    "\u201c": '"', "\u201d": '"', "\u201e": '"', "\u2033": '"',
+    "\u2026": "...",
+    "\u2022": "*",
+    "\u2009": " ", "\u202f": " ",
+})
+
+
 def safe_text(s: object) -> str:
-    """Return a string suitable for ESC/POS — strip HTML tags defensively."""
+    """Return a string suitable for ESC/POS — strip HTML tags defensively and
+    swap dashes, curly quotes and the like for characters CP858 has."""
     if s is None:
         return ""
     out = str(s)
@@ -64,4 +76,4 @@ def safe_text(s: object) -> str:
         if j == -1:
             break
         out = out[:i] + out[j + 1 :]
-    return out.replace("\xa0", " ").strip()
+    return out.replace("\xa0", " ").translate(_ASCII_TYPOGRAPHY).strip()

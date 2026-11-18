@@ -199,3 +199,22 @@ def test_to_taste_ingredients_print_to_taste_instead_of_zero():
     text = out.decode("cp858", errors="replace")
     assert "- Suola (to taste)" in text
     assert "0 rs" not in text
+
+
+def test_typographic_characters_do_not_print_as_question_marks():
+    p = Dummy()
+    p.charcode("CP858")
+    recipe_tpl.render(
+        p,
+        recipe={
+            "name": "“Hyvää” pullaa",
+            "ingredients": [{"amount_needed": 1, "unit_abbrev": "tl", "product_name": "kardemumma ‘jauhettu’"}],
+            "instructions": ["Lisää 1–2 tl “x”…"],
+        },
+    )
+    out = p.output
+    assert b"?" not in out
+    text = out.decode("cp858", errors="replace")
+    assert '"Hyvää" pullaa' in text
+    assert "'jauhettu'" in text
+    assert '1-2 tl "x"...' in text

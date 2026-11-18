@@ -1,3 +1,7 @@
+## 0.1.22
+
+- Dashes, curly quotes, "…", "•" and thin spaces print as their plain counterparts (-, ', ", ..., *) instead of "?": HA-stock's "Shopping list — K-Citymarket" and recipes copied from the web come out readable
+
 ## 0.1.21
 
 - Receipts are printed in English: "Shopping list", "Servings", "Ingredients", "Steps", "(to taste)" and "(empty list)". Product names and aisle names stay in Finnish
