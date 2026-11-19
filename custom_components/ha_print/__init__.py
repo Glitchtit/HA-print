@@ -59,17 +59,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         slug_patterns=[ADDON_SLUG_RECIPES_PATTERN], port=8100
     )
 
-    storage = StorageClient(storage_url) if storage_url else None
-    recipes = RecipesClient(recipes_url) if recipes_url else None
     printer = PrinterClient(addon_url)
-
-    hass.data[DOMAIN][entry.entry_id] = {
+    clients = {
         "printer": printer,
-        "storage": storage,
-        "recipes": recipes,
+        "storage": StorageClient(storage_url) if storage_url else None,
+        "recipes": RecipesClient(recipes_url) if recipes_url else None,
     }
+    hass.data[DOMAIN][entry.entry_id] = clients
+
+    async def _client(kind: str):
+        """The add-on's client, looking again for an add-on that was not up at boot."""
+        if clients[kind] is None:
+            if kind == "storage":
+                url = await discover_addon_url(slug_patterns=[ADDON_SLUG_STORAGE_PATTERN], port=8099)
+                clients[kind] = StorageClient(url) if url else None
+            else:
+                url = await discover_addon_url(slug_patterns=[ADDON_SLUG_RECIPES_PATTERN], port=8100)
+                clients[kind] = RecipesClient(url) if url else None
+        return clients[kind]
 
     async def _shopping_list_service(call: ServiceCall) -> None:
+        storage = await _client("storage")
         if storage is None:
             raise HomeAssistantError(
                 "HA-storage add-on was not auto-discovered; cannot fetch shopping list."
@@ -94,6 +104,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise HomeAssistantError(f"Print failed: {exc}") from exc
 
     async def _recipe_service(call: ServiceCall) -> dict:
+        recipes = await _client("recipes")
+        storage = await _client("storage")
         if recipes is None:
             raise HomeAssistantError(
                 "HA-recipes add-on was not auto-discovered; cannot fetch recipe."
