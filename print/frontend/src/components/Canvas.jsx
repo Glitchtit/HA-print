@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Rnd } from 'react-rnd'
-import { CANVAS_WIDTH, measureInkBottom, renderToCanvas, spacerBottom } from '../lib/render'
+import { CANVAS_WIDTH, elementBottom, measureInkBottom, renderToCanvas, spacerBottom } from '../lib/render'
 import { computeSnap } from '../lib/snap'
 
 /**
@@ -29,7 +29,7 @@ export default function Canvas({ elements, selectedId, onSelect, onChange, offse
 
   // Canvas length auto-fits the content (live, so it grows while dragging a
   // block down), plus the user's offset. Never clips a block.
-  const contentBox = displayElements.length ? Math.max(...displayElements.map((e) => e.y + e.h)) : 0
+  const contentBox = displayElements.length ? Math.max(...displayElements.map(elementBottom)) : 0
   const height = Math.max(contentBox + 8, Math.max(MIN_HEIGHT, contentBox + BASE_PAD) + offset)
 
   // Single-flight render scheduler — coalesces rapid drag updates (last wins)

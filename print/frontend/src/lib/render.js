@@ -52,14 +52,30 @@ function loadImage(src) {
   return p
 }
 
+// Sets the text element's font on ctx and returns its wrapped lines + line height.
+function textLayout(ctx, el) {
+  const size = el.fontSize || 28
+  ctx.font = `${el.bold ? 'bold ' : ''}${size}px ${FONT_FAMILY}`
+  const lines = String(el.text || '').split('\n').flatMap((l) => wrapLine(ctx, l, el.w))
+  return { lines, lineH: Math.round(size * 1.25) }
+}
+
+let measureCtx = null
+
+/** Lowest edge of an element: its box, or for text the last wrapped line if that runs past the box. */
+export function elementBottom(el) {
+  const box = el.y + el.h
+  if (el.type !== 'text') return box
+  measureCtx ||= document.createElement('canvas').getContext('2d')
+  const { lines, lineH } = textLayout(measureCtx, el)
+  return Math.max(box, el.y + lines.length * lineH)
+}
+
 async function drawElement(ctx, el) {
   if (el.type === 'text') {
-    const size = el.fontSize || 28
     ctx.fillStyle = '#000'
     ctx.textBaseline = 'top'
-    ctx.font = `${el.bold ? 'bold ' : ''}${size}px ${FONT_FAMILY}`
-    const lineH = Math.round(size * 1.25)
-    const lines = String(el.text || '').split('\n').flatMap((l) => wrapLine(ctx, l, el.w))
+    const { lines, lineH } = textLayout(ctx, el)
     let y = el.y
     for (const line of lines) {
       const tw = ctx.measureText(line).width
@@ -139,10 +155,10 @@ async function drawElement(ctx, el) {
   }
 }
 
-/** Lowest box edge of any element — a generous upper bound for the render height. */
+/** Lowest edge of any element (incl. overflowing text) — a generous upper bound for the render height. */
 export function contentBottom(elements, pad = 8) {
   if (!elements.length) return 0
-  return Math.max(...elements.map((e) => e.y + e.h)) + pad
+  return Math.max(...elements.map(elementBottom)) + pad
 }
 
 /**

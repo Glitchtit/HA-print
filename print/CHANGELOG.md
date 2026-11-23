@@ -1,3 +1,7 @@
+## 0.1.24
+
+- Label designer: a text block whose lines run past the bottom of its box prints in full (the preview grows to show it too), instead of being cut off at the box's edge
+
 ## 0.1.23
 
 - A switched-off or unreachable printer is reported as "Printer not reachable at <host>:<port>: Connection refused" (HTTP 503), so HA-stock's toast and the `ha_print` actions say what is wrong instead of "status code 500"
